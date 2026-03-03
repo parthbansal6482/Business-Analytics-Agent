@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getShopifyStatus, triggerShopifySync, connectShopify } from "../../lib/api"
 import { useUserStore } from "../../store/useUserStore"
@@ -12,13 +13,13 @@ export default function ShopifyConnectCard() {
         queryFn: getShopifyStatus,
         retry: false,
         refetchOnWindowFocus: false,
-        // In dev mode without backend, treat errors as disconnected
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        select: (data: any) => {
-            setShopifyConnected(data.connected)
-            return data
-        },
     })
+
+    useEffect(() => {
+        if (status) {
+            setShopifyConnected(status.connected)
+        }
+    }, [status, setShopifyConnected])
 
     const syncMutation = useMutation({
         mutationFn: triggerShopifySync,

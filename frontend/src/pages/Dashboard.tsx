@@ -1,5 +1,6 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSessionStore } from "../store/useSessionStore"
+import { useUserStore } from "../store/useUserStore"
 import { useResearch } from "../hooks/useResearch"
 import type { ResearchMode } from "../lib/types"
 import ModeToggle from "../components/dashboard/ModeToggle"
@@ -16,6 +17,11 @@ export default function Dashboard() {
 
     const { isLoading, report, needsClarification, query } = useSessionStore()
     const { runQuery, runWithClarification } = useResearch()
+    const { syncUploadStatus } = useUserStore()
+
+    useEffect(() => {
+        syncUploadStatus()
+    }, [syncUploadStatus])
 
     const handleSubmit = () => {
         if (!queryText.trim() || isLoading) return

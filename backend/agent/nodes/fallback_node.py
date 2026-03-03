@@ -64,6 +64,7 @@ def fallback_node(state: AgentState) -> AgentState:
         "tokens_used": state.get("total_tokens_used", 0),
         "follow_up_suggestions": [],
         "duration_seconds": 0.0,
+        "error": error,
     }
 
     publish_step(session_id, "report", "done", "Partial report ready")

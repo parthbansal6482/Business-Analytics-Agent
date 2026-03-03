@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import ShopifyConnectCard from "../components/connect/ShopifyConnectCard"
 import ManualUploadCard from "../components/connect/ManualUploadCard"
@@ -7,7 +8,11 @@ import { useUserStore } from "../store/useUserStore"
 
 export default function Connect() {
     const navigate = useNavigate()
-    const { dataReady } = useUserStore()
+    const { dataReady, syncUploadStatus } = useUserStore()
+
+    useEffect(() => {
+        syncUploadStatus()
+    }, [syncUploadStatus])
 
     return (
         <div className="flex-1 flex flex-col items-center w-full px-6 py-10 md:px-12">

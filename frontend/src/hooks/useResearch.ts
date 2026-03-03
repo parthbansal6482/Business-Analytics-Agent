@@ -36,11 +36,14 @@ export function useResearch() {
 
             store.updateProgress(event)
 
-            if (event.step === "report" && event.status === "done") {
+            if (event.step === "__done__") {
                 getReport(session_id).then((session) => {
-                    store.setReport(session.report)
-                    store.addTokens(session.report.tokens_used)
-                    store.addCost(session.report.cost_usd)
+                    if (session.report) {
+                        store.setReport(session.report)
+                        store.addTokens(session.report.tokens_used || 0)
+                        store.addCost(session.report.cost_usd || 0)
+                    }
+                    store.setLoading(false)
                     es.close()
                 }).catch(() => {
                     store.setLoading(false)

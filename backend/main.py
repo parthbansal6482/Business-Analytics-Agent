@@ -1,14 +1,12 @@
-"""
-FastAPI application entry point.
-"""
-
-import logging
 import os
-
+import pathlib
 from dotenv import load_dotenv
 
-load_dotenv()
+# Explicitly load .env from the same directory as main.py
+env_path = pathlib.Path(__file__).parent / ".env"
+load_dotenv(dotenv_path=env_path, override=True)
 
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 

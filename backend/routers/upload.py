@@ -9,10 +9,28 @@ from fastapi.responses import JSONResponse
 
 from data.ingestion import ingest_file
 from db.models import UploadRecord
+from sqlalchemy import select
 from db.session import AsyncSessionLocal
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/upload", tags=["upload"])
+
+
+@router.get("/status")
+async def get_upload_status(x_user_id: str = Header(default="default-user")):
+    """Returns a dict of data_type -> boolean (True if records exist)."""
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(UploadRecord.data_type).where(UploadRecord.user_id == x_user_id)
+        )
+        found_types = {r[0] for r in result.all()}
+        
+        return {
+            "catalog": "catalog" in found_types,
+            "reviews": "reviews" in found_types,
+            "pricing": "pricing" in found_types,
+            "competitors": "competitors" in found_types,
+        }
 
 
 async def _save_upload_record(user_id: str, data_type: str, row_count: int):

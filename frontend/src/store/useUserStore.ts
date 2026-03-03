@@ -19,6 +19,7 @@ interface UserStore {
     setDataReady: (v: boolean) => void
     setUploadStatus: (type: keyof UploadStatus, ready: boolean) => void
     setShopifyConnected: (v: boolean) => void
+    syncUploadStatus: () => Promise<void>
 }
 
 export const useUserStore = create<UserStore>()(
@@ -55,6 +56,18 @@ export const useUserStore = create<UserStore>()(
                     const anyReady = s.shopifyConnected || Object.values(newStatus).some(Boolean)
                     return { uploadStatus: newStatus, dataReady: anyReady }
                 })
+            },
+            syncUploadStatus: async () => {
+                try {
+                    const { getUploadStatus } = await import("../lib/api")
+                    const status = await getUploadStatus()
+                    set((s) => {
+                        const anyReady = s.shopifyConnected || Object.values(status).some(Boolean)
+                        return { uploadStatus: status as any, dataReady: anyReady }
+                    })
+                } catch {
+                    // ignore if backend down
+                }
             },
         }),
         { name: "user-store" }

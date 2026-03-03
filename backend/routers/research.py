@@ -204,6 +204,7 @@ async def get_report(
     x_user_id: str = Header(default="default-user"),
 ):
     """Fetch a specific past report by session_id."""
+    logger.info(f"Fetching report for session {session_id} and user {x_user_id}")
     async with AsyncSessionLocal() as db:
         result = await db.execute(
             select(ResearchSession).where(
@@ -214,6 +215,7 @@ async def get_report(
         session = result.scalar_one_or_none()
 
         if not session:
+            logger.warning(f"Report NOT FOUND for session {session_id} and user {x_user_id}")
             raise HTTPException(status_code=404, detail="Session not found.")
 
         return {

@@ -15,6 +15,16 @@ interface ReportCardProps {
 export default function ReportCard({ report }: ReportCardProps) {
     return (
         <div className="bg-white border border-[#e5e2db] rounded-xl shadow-sm overflow-hidden animate-fade-in">
+            {report.error && (
+                <div className="bg-red-50 border-b border-red-200 p-4 flex items-start gap-3">
+                    <span className="material-symbols-outlined text-red-600 mt-0.5" style={{ fontSize: 20 }}>warning</span>
+                    <div>
+                        <h4 className="text-sm font-semibold text-red-900">Analysis Interrupted</h4>
+                        <p className="text-sm text-red-700 mt-1">{report.error}</p>
+                    </div>
+                </div>
+            )}
+
             {/* 1. Executive Summary */}
             <ExecutiveSummary
                 summary={report.executive_summary}
