@@ -10,9 +10,9 @@ export default function SentimentBar({ positive, neutral, negative }: SentimentB
             {/* Stacked bar */}
             <div className="h-3 w-full rounded-full overflow-hidden flex bg-stone-100">
                 <div
-                    className="h-full bg-[#b91c1c]"
-                    style={{ width: `${negative}%` }}
-                    title={`Negative: ${negative}%`}
+                    className="h-full bg-[#15803d]"
+                    style={{ width: `${positive}%` }}
+                    title={`Positive: ${positive}%`}
                 />
                 <div
                     className="h-full bg-stone-300"
@@ -20,9 +20,9 @@ export default function SentimentBar({ positive, neutral, negative }: SentimentB
                     title={`Neutral: ${neutral}%`}
                 />
                 <div
-                    className="h-full bg-[#15803d]"
-                    style={{ width: `${positive}%` }}
-                    title={`Positive: ${positive}%`}
+                    className="h-full bg-[#b91c1c]"
+                    style={{ width: `${negative}%` }}
+                    title={`Negative: ${negative}%`}
                 />
             </div>
             {/* Legend */}

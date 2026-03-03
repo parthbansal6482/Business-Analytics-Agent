@@ -1,12 +1,9 @@
-"""
-Gemini 2.0 Flash LLM setup with exponential-backoff retry.
-All agent nodes must use call_llm_with_retry — never llm.invoke() directly.
-"""
-
 import os
 import time
 import logging
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
 
 logger = logging.getLogger(__name__)
 
@@ -16,26 +13,61 @@ def get_llm():
     """Lazy initialization of the LLM to ensure environment variables are loaded."""
     global _llm
     if _llm is None:
-        api_key = os.getenv("GOOGLE_API_KEY", "")
-        if not api_key:
-            # Try to force reload one last time if missing
-            from dotenv import load_dotenv
-            import pathlib
-            load_dotenv(dotenv_path=pathlib.Path(__file__).parent.parent / ".env", override=True)
-            api_key = os.getenv("GOOGLE_API_KEY", "")
-
-        if not api_key:
-            logger.error("❌ GOOGLE_API_KEY is completely missing or empty!")
-            raise RuntimeError("GOOGLE_API_KEY not found in environment")
+        provider = os.getenv("LLM_PROVIDER", "gemini").lower()
         
-        logger.info(f"✅ Initializing Gemini LLM (key starts with {api_key[:6]}...)")
-        _llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
-            google_api_key=api_key,
-            temperature=0.2,
-            max_tokens=8192,
-            max_retries=0, # Disable internal retries so we can control wait times
-        )
+        # Ensure environment is loaded
+        from dotenv import load_dotenv
+        import pathlib
+        load_dotenv(dotenv_path=pathlib.Path(__file__).parent.parent / ".env", override=True)
+
+        if provider == "openrouter":
+            api_key = os.getenv("OPENROUTER_API_KEY", "")
+            if not api_key:
+                logger.error("❌ OPENROUTER_API_KEY is missing!")
+                raise RuntimeError("OPENROUTER_API_KEY not found in environment")
+            
+            model_name = os.getenv("OPENROUTER_MODEL", "google/gemini-2.0-flash-001")
+            logger.info(f"✅ Initializing OpenRouter LLM (model: {model_name})")
+            _llm = ChatOpenAI(
+                model=model_name,
+                openai_api_key=api_key,
+                openai_api_base="https://openrouter.ai/api/v1",
+                temperature=0.2,
+                max_tokens=8192,
+                default_headers={
+                    "HTTP-Referer": "http://localhost:3000",
+                    "X-Title": "Business Analytics Agent",
+                }
+            )
+        elif provider == "groq":
+            api_key = os.getenv("GROQ_API_KEY", "")
+            if not api_key:
+                logger.error("❌ GROQ_API_KEY is missing!")
+                raise RuntimeError("GROQ_API_KEY not found in environment")
+            
+            model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+            logger.info(f"✅ Initializing Groq LLM (model: {model_name})")
+            _llm = ChatGroq(
+                model=model_name,
+                groq_api_key=api_key,
+                temperature=0.2,
+                max_tokens=8192,
+            )
+        else:
+            # Default to Gemini
+            api_key = os.getenv("GOOGLE_API_KEY", "")
+            if not api_key:
+                logger.error("❌ GOOGLE_API_KEY is missing!")
+                raise RuntimeError("GOOGLE_API_KEY not found in environment")
+
+            logger.info(f"✅ Initializing Gemini LLM (key starts with {api_key[:6]}...)")
+            _llm = ChatGoogleGenerativeAI(
+                model="gemini-2.0-flash",
+                google_api_key=api_key,
+                temperature=0.2,
+                max_tokens=8192,
+                max_retries=0, 
+            )
     return _llm
 
 
