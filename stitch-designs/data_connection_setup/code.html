@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IntelAgent - Data Connection &amp; Setup</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Playfair+Display:wght@400;600;700&amp;family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#b7860b",
+                        "background-light": "#FAFAF7", 
+                        "background-dark": "#221d10",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#2d261a",
+                        "border-light": "#e5e2db",
+                        "border-dark": "#4a4030",
+                        "text-main": "#181611",
+                        "text-muted": "#8a7e60",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                        serif: ["Playfair Display", "serif"],
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-text-main dark:text-white min-h-screen flex flex-col font-sans">
+<!-- Navigation -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark px-10 py-4 sticky top-0 z-50">
+<div class="flex items-center gap-4 text-text-main dark:text-white">
+<div class="size-6 text-primary">
+<span class="material-symbols-outlined text-3xl">psychology_alt</span>
+</div>
+<h2 class="text-xl font-bold leading-tight tracking-[-0.015em] font-serif">IntelAgent</h2>
+</div>
+<div class="flex flex-1 justify-end gap-8 items-center">
+<nav class="hidden md:flex items-center gap-9">
+<a class="text-text-main dark:text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-primary text-sm font-medium leading-normal" href="#">Data Sources</a>
+<a class="text-text-main dark:text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Reports</a>
+<a class="text-text-main dark:text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Settings</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center overflow-hidden rounded-lg h-10 px-6 bg-primary hover:bg-primary/90 transition-colors text-white text-sm font-bold leading-normal tracking-[0.015em]">
+<span class="truncate">Start Researching</span>
+</button>
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-10 border border-border-light dark:border-border-dark cursor-pointer" data-alt="User profile avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB8QpfFo-vgq9Ja7SdCy5ht18ZyAeIcWNjKUFaEdsvR0Ps3WX5w4aFmG1924LsPxpX4Zz1nBgFvN23fvrIg_BS0tzwA56oMSI_RikItTXebQmjZhf7of4qj_QpraTr6ZMY-Uu1amciFJ05XSpu8ai0ta1hF6DRA1ZHt_K9Jgixh1fYyl-5FKIt-x6w88G6cFvxnbKl-RkYZLx7wY-3q7XSF45_M73Ei8O3erwr6kasmH9ffk71Cz5q6i53ML6hR5di6OCBgGH6o_gQ");'></div>
+</div>
+</div>
+</header>
+<main class="flex-1 flex flex-col items-center w-full px-6 py-10 md:px-12 lg:px-24">
+<div class="w-full max-w-7xl flex flex-col gap-12">
+<!-- Hero Section -->
+<section class="flex flex-col gap-6 items-center text-center py-8">
+<div class="w-16 h-1 bg-primary/20 rounded-full mb-2"></div>
+<h1 class="text-4xl md:text-5xl lg:text-6xl font-serif font-semibold text-text-main dark:text-white leading-tight">
+                    Set Up Your Intelligence Workspace
+                </h1>
+<p class="text-text-muted dark:text-gray-400 text-lg max-w-2xl font-light">
+                    Connect your Shopify store and upload supplementary data to power your AI research assistant. The more data you provide, the smarter the insights.
+                </p>
+</section>
+<!-- Integration Status Section -->
+<section class="flex flex-col gap-6">
+<div class="flex items-center justify-between border-b border-border-light dark:border-border-dark pb-4">
+<h3 class="text-2xl font-serif font-bold text-text-main dark:text-white">Store Integration</h3>
+<span class="text-sm text-text-muted dark:text-gray-400">Step 1 of 3</span>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<!-- Disconnected State -->
+<div class="group flex flex-col md:flex-row gap-6 p-6 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark shadow-sm hover:shadow-md transition-shadow">
+<div class="w-full md:w-1/3 aspect-video md:aspect-auto bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center relative overflow-hidden">
+<span class="material-symbols-outlined text-6xl text-gray-300 dark:text-gray-600">storefront</span>
+<div class="absolute inset-0 bg-gradient-to-tr from-black/5 to-transparent"></div>
+</div>
+<div class="flex-1 flex flex-col justify-between gap-4">
+<div>
+<div class="flex items-center gap-2 mb-2">
+<h4 class="text-lg font-bold text-text-main dark:text-white">Shopify Store</h4>
+<span class="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-medium">Disconnected</span>
+</div>
+<p class="text-sm text-text-muted dark:text-gray-400 leading-relaxed">
+                                    Connect your main store to sync product catalog, sales history, and customer behavior data automatically.
+                                </p>
+</div>
+<button class="flex items-center justify-center gap-2 w-full md:w-fit px-5 py-2.5 rounded-lg border border-border-light dark:border-border-dark hover:border-primary hover:text-primary transition-colors text-sm font-semibold bg-white dark:bg-transparent">
+<span class="material-symbols-outlined text-[18px]">link</span>
+                                Connect Store
+                            </button>
+</div>
+</div>
+<!-- Connected State (Demo) -->
+<div class="group flex flex-col md:flex-row gap-6 p-6 rounded-xl border border-primary/30 bg-primary/5 dark:bg-primary/10 shadow-sm relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+</div>
+<div class="w-full md:w-1/3 aspect-video md:aspect-auto bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center relative overflow-hidden border border-primary/20">
+<img alt="Shopify store dashboard interface preview" class="w-full h-full object-cover opacity-80" data-alt="Shopify store dashboard interface preview" src="https://lh3.googleusercontent.com/aida-public/AB6AXuARE9LnOOQvhvlIiW2x4eO0cb8FfBDcfea4031KWJfDNNuEg3LcvmX_fkIy9e6u1N1LEgFE3IUpVQRMpwHxY4J-FgkZlV7HmWQ4xlj1lX4fwOEKD0wkHhdzi7KB57tWHh00NPiH2W5_2wNLKttnjSfJiYjzvnRC2sd1KAdyruaqt4BDCR25xWVrjmPWlKwRBaqG7AYXaDDfYngyikeZ7KM0_EBZ7aH6lYm_kjOlLaw_0hSKDTHuJm2CCCJaMCtRlq6pKIRHU6se56Y"/>
+</div>
+<div class="flex-1 flex flex-col justify-between gap-4">
+<div>
+<div class="flex items-center gap-2 mb-2">
+<h4 class="text-lg font-bold text-text-main dark:text-white">Luxe Living Home</h4>
+<span class="px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Active
+                                    </span>
+</div>
+<p class="text-sm text-text-muted dark:text-gray-400 leading-relaxed">
+                                    Syncing: Products, Orders, Customers. <br/>Last synced: 2 mins ago
+                                </p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors text-sm font-semibold shadow-sm">
+<span class="material-symbols-outlined text-[18px]">settings</span>
+                                    Manage
+                                </button>
+<button class="p-2.5 rounded-lg text-text-muted hover:text-primary hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-[20px]">refresh</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Manual Data Upload Section -->
+<section class="flex flex-col gap-6">
+<div class="flex items-center justify-between border-b border-border-light dark:border-border-dark pb-4">
+<h3 class="text-2xl font-serif font-bold text-text-main dark:text-white">Manual Data Sources</h3>
+<span class="text-sm text-text-muted dark:text-gray-400">Step 2 of 3</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Card 1: Empty State -->
+<div class="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-5 flex flex-col gap-4 hover:border-primary/50 transition-colors cursor-pointer group h-full">
+<div class="flex items-start justify-between">
+<div class="p-2 bg-background-light dark:bg-background-dark rounded-lg group-hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-text-muted group-hover:text-primary">inventory_2</span>
+</div>
+<span class="text-xs font-medium text-text-muted dark:text-gray-500 px-2 py-1 bg-background-light dark:bg-background-dark rounded">CSV / PDF</span>
+</div>
+<div>
+<h4 class="text-base font-semibold text-text-main dark:text-white mb-1">Product Catalog</h4>
+<p class="text-xs text-text-muted dark:text-gray-400">Upload detailed specs not in Shopify.</p>
+</div>
+<div class="mt-auto pt-4 border-t border-dashed border-border-light dark:border-border-dark flex justify-center">
+<span class="text-primary text-sm font-medium flex items-center gap-1 group-hover:underline">
+<span class="material-symbols-outlined text-[16px]">upload_file</span> Upload File
+                            </span>
+</div>
+</div>
+<!-- Card 2: Uploaded State -->
+<div class="bg-surface-light dark:bg-surface-dark border border-green-200 dark:border-green-900/50 rounded-xl p-5 flex flex-col gap-4 relative overflow-hidden h-full">
+<div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-green-500/10 to-transparent rounded-bl-3xl"></div>
+<div class="flex items-start justify-between">
+<div class="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+<span class="material-symbols-outlined text-green-600 dark:text-green-400">rate_review</span>
+</div>
+<span class="text-xs font-medium text-green-700 dark:text-green-400 px-2 py-1 bg-green-50 dark:bg-green-900/20 rounded flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check</span> Ready
+                            </span>
+</div>
+<div>
+<h4 class="text-base font-semibold text-text-main dark:text-white mb-1">Customer Reviews</h4>
+<p class="text-xs text-text-muted dark:text-gray-400">analysis_q3_2023.csv</p>
+<p class="text-[10px] text-text-muted dark:text-gray-500 mt-1">1.2 MB • Uploaded today</p>
+</div>
+<div class="mt-auto pt-4 flex gap-2">
+<button class="flex-1 py-1.5 text-xs font-medium border border-border-light dark:border-border-dark rounded bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800">Replace</button>
+<button class="p-1.5 text-xs font-medium border border-border-light dark:border-border-dark rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 bg-white dark:bg-transparent">
+<span class="material-symbols-outlined text-[16px]">delete</span>
+</button>
+</div>
+</div>
+<!-- Card 3: Empty State -->
+<div class="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-5 flex flex-col gap-4 hover:border-primary/50 transition-colors cursor-pointer group h-full">
+<div class="flex items-start justify-between">
+<div class="p-2 bg-background-light dark:bg-background-dark rounded-lg group-hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-text-muted group-hover:text-primary">price_change</span>
+</div>
+<span class="text-xs font-medium text-text-muted dark:text-gray-500 px-2 py-1 bg-background-light dark:bg-background-dark rounded">XLSX</span>
+</div>
+<div>
+<h4 class="text-base font-semibold text-text-main dark:text-white mb-1">Pricing Strategy</h4>
+<p class="text-xs text-text-muted dark:text-gray-400">Historical pricing and margin data.</p>
+</div>
+<div class="mt-auto pt-4 border-t border-dashed border-border-light dark:border-border-dark flex justify-center">
+<span class="text-primary text-sm font-medium flex items-center gap-1 group-hover:underline">
+<span class="material-symbols-outlined text-[16px]">upload_file</span> Upload File
+                            </span>
+</div>
+</div>
+<!-- Card 4: Empty State -->
+<div class="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-5 flex flex-col gap-4 hover:border-primary/50 transition-colors cursor-pointer group h-full">
+<div class="flex items-start justify-between">
+<div class="p-2 bg-background-light dark:bg-background-dark rounded-lg group-hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-text-muted group-hover:text-primary">manage_search</span>
+</div>
+<span class="text-xs font-medium text-text-muted dark:text-gray-500 px-2 py-1 bg-background-light dark:bg-background-dark rounded">Link / CSV</span>
+</div>
+<div>
+<h4 class="text-base font-semibold text-text-main dark:text-white mb-1">Competitor Listings</h4>
+<p class="text-xs text-text-muted dark:text-gray-400">Competitor URLs or product dumps.</p>
+</div>
+<div class="mt-auto pt-4 border-t border-dashed border-border-light dark:border-border-dark flex justify-center">
+<span class="text-primary text-sm font-medium flex items-center gap-1 group-hover:underline">
+<span class="material-symbols-outlined text-[16px]">add_link</span> Add Source
+                            </span>
+</div>
+</div>
+</div>
+</section>
+<!-- Preferences Section -->
+<section class="flex flex-col gap-6">
+<div class="flex items-center justify-between border-b border-border-light dark:border-border-dark pb-4">
+<h3 class="text-2xl font-serif font-bold text-text-main dark:text-white">Research Preferences</h3>
+<span class="text-sm text-text-muted dark:text-gray-400">Step 3 of 3</span>
+</div>
+<div class="flex flex-col lg:flex-row gap-8">
+<!-- KPIs -->
+<div class="flex-1 bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary">monitoring</span>
+<h4 class="font-bold text-lg">Focus KPIs</h4>
+</div>
+<p class="text-sm text-text-muted dark:text-gray-400 mb-6">Select the metrics that matter most to your current goals.</p>
+<div class="flex flex-wrap gap-3">
+<label class="cursor-pointer group">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="px-4 py-2 rounded-full border border-border-light dark:border-border-dark bg-white dark:bg-transparent text-sm font-medium text-text-main dark:text-gray-300 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all shadow-sm">
+                                    Conversion Rate
+                                </div>
+</label>
+<label class="cursor-pointer group">
+<input class="peer sr-only" type="checkbox"/>
+<div class="px-4 py-2 rounded-full border border-border-light dark:border-border-dark bg-white dark:bg-transparent text-sm font-medium text-text-main dark:text-gray-300 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all shadow-sm">
+                                    AOV
+                                </div>
+</label>
+<label class="cursor-pointer group">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="px-4 py-2 rounded-full border border-border-light dark:border-border-dark bg-white dark:bg-transparent text-sm font-medium text-text-main dark:text-gray-300 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all shadow-sm">
+                                    Customer Retention
+                                </div>
+</label>
+<label class="cursor-pointer group">
+<input class="peer sr-only" type="checkbox"/>
+<div class="px-4 py-2 rounded-full border border-border-light dark:border-border-dark bg-white dark:bg-transparent text-sm font-medium text-text-main dark:text-gray-300 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all shadow-sm">
+                                    Profit Margin
+                                </div>
+</label>
+<label class="cursor-pointer group">
+<input class="peer sr-only" type="checkbox"/>
+<div class="px-4 py-2 rounded-full border border-border-light dark:border-border-dark bg-white dark:bg-transparent text-sm font-medium text-text-main dark:text-gray-300 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all shadow-sm">
+                                    CAC
+                                </div>
+</label>
+</div>
+</div>
+<!-- Marketplaces -->
+<div class="flex-1 bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary">public</span>
+<h4 class="font-bold text-lg">Target Marketplaces</h4>
+</div>
+<p class="text-sm text-text-muted dark:text-gray-400 mb-6">Where should the AI look for trends and competitor data?</p>
+<div class="flex flex-wrap gap-3">
+<label class="cursor-pointer group">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="px-4 py-2 rounded-full border border-border-light dark:border-border-dark bg-white dark:bg-transparent text-sm font-medium text-text-main dark:text-gray-300 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all shadow-sm">
+                                    Amazon US
+                                </div>
+</label>
+<label class="cursor-pointer group">
+<input class="peer sr-only" type="checkbox"/>
+<div class="px-4 py-2 rounded-full border border-border-light dark:border-border-dark bg-white dark:bg-transparent text-sm font-medium text-text-main dark:text-gray-300 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all shadow-sm">
+                                    Etsy
+                                </div>
+</label>
+<label class="cursor-pointer group">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="px-4 py-2 rounded-full border border-border-light dark:border-border-dark bg-white dark:bg-transparent text-sm font-medium text-text-main dark:text-gray-300 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all shadow-sm">
+                                    Google Shopping
+                                </div>
+</label>
+<label class="cursor-pointer group">
+<input class="peer sr-only" type="checkbox"/>
+<div class="px-4 py-2 rounded-full border border-border-light dark:border-border-dark bg-white dark:bg-transparent text-sm font-medium text-text-main dark:text-gray-300 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all shadow-sm">
+                                    TikTok Shop
+                                </div>
+</label>
+<label class="cursor-pointer group">
+<input class="peer sr-only" type="checkbox"/>
+<div class="px-4 py-2 rounded-full border border-border-light dark:border-border-dark bg-white dark:bg-transparent text-sm font-medium text-text-main dark:text-gray-300 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all shadow-sm">
+                                    eBay
+                                </div>
+</label>
+</div>
+</div>
+</div>
+</section>
+<!-- Bottom Action -->
+<section class="py-8 flex flex-col items-center justify-center gap-4">
+<button class="w-full max-w-md bg-primary hover:bg-primary/90 text-white font-bold text-lg py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3">
+<span class="material-symbols-outlined">rocket_launch</span>
+                    Start Researching
+                </button>
+<p class="text-sm text-text-muted dark:text-gray-500">
+                    By continuing, you agree to our data processing terms.
+                </p>
+</section>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full bg-white dark:bg-surface-dark border-t border-border-light dark:border-border-dark py-8 px-10">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-2 text-text-muted">
+<span class="material-symbols-outlined">psychology_alt</span>
+<span class="text-sm font-medium">© 2023 IntelAgent AI Inc.</span>
+</div>
+<div class="flex gap-8 text-sm text-text-muted">
+<a class="hover:text-primary transition-colors" href="#">Help Center</a>
+<a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-primary transition-colors" href="#">Terms of Service</a>
+</div>
+</div>
+</footer>
+</body></html>

@@ -1,0 +1,159 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #b7860b;
+  --color-primary-dark: #8a6508;
+  --color-primary-hover: #9a7009;
+  --color-background-light: #FAFAF7;
+  --color-background-dark: #221d10;
+  --color-surface-light: #ffffff;
+  --color-surface-dark: #2d2616;
+  --color-surface2: #f5f0e8;
+  --color-border-light: #e5e2db;
+  --color-border-dark: #4a4030;
+  --color-text-main: #181611;
+  --color-text-muted: #8a7e60;
+  --color-accent-gold: #F0E6C8;
+  --color-accent-sienna: #A0522D;
+  --color-status-success: #15803d;
+  --color-status-danger: #b91c1c;
+  --color-status-warning: #b45309;
+
+  --font-family-sans: "Inter", sans-serif;
+  --font-family-serif: "Playfair Display", serif;
+  --font-family-mono: "JetBrains Mono", monospace;
+
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.03);
+  --shadow-subtle: 0 2px 10px rgba(183, 134, 11, 0.05);
+}
+
+/* Material Symbols font variation settings */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'liga';
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background-color: #FAFAF7;
+  color: #181611;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1c9b8;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b7a990;
+}
+
+/* Selection */
+::selection {
+  background: rgba(183, 134, 11, 0.15);
+}
+
+/* Transitions */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Animations */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}

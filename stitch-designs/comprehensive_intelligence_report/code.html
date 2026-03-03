@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Shopify Intel - Intelligence Report</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#b7860b",
+                        "primary-dark": "#8a6508",
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#221d10",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#2d2616",
+                        "accent-gold": "#F0E6C8",
+                        "accent-sienna": "#A0522D",
+                        "status-success": "#15803d",
+                        "status-danger": "#b91c1c",
+                        "status-warning": "#b45309",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                        serif: ["Playfair Display", "serif"],
+                        mono: ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.25rem",
+                        lg: "0.5rem",
+                        xl: "0.75rem",
+                        full: "9999px",
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display transition-colors duration-200">
+<div class="flex min-h-screen w-full overflow-x-hidden">
+<!-- Side Navigation -->
+<div class="hidden lg:flex flex-col w-72 border-r border-stone-200 dark:border-stone-800 bg-surface-light dark:bg-surface-dark sticky top-0 h-screen overflow-y-auto">
+<div class="flex flex-col h-full justify-between p-4">
+<div class="flex flex-col gap-6">
+<!-- User Profile -->
+<div class="flex items-center gap-3 px-2">
+<div class="relative bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12 ring-2 ring-primary/20" data-alt="User profile avatar placeholder" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDLGgibQlLSEELT5EEZXQjEjLQxtcDL3uWWc3TU9P3pI_pY23VhMiE3L7JdEFDECuN-p6Bk7NWGJIMpZ-77Ux0i-olLIhHE6U06SXnsb4FPadZoq285HFHe83QQ0UBYBmcspKPXkh3ujBS98QVIImxOcpj2EIgPEFJ5abDF5T_bco8N1BjW_h3mbVhsq10tXR05O9Aypyo3CN6bPkWQslya1pg3MOf7vs-lE8ACVyf-9PHEvqSTBy02y3rZExcmHwsQJDu1OuxP8e0");'>
+</div>
+<div class="flex flex-col">
+<h1 class="text-slate-900 dark:text-white text-base font-bold leading-tight">Shopify Intel</h1>
+<p class="text-primary text-xs font-medium uppercase tracking-wider">Premium Plan</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary dark:text-primary-light" href="#">
+<span class="material-symbols-outlined text-primary">description</span>
+<span class="text-sm font-bold">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">group</span>
+<span class="text-sm font-medium">Competitors</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">monitoring</span>
+<span class="text-sm font-medium">Trends</span>
+</a>
+</nav>
+</div>
+<!-- Bottom Links -->
+<div class="flex flex-col gap-1 mt-auto border-t border-stone-200 dark:border-stone-800 pt-4">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">help</span>
+<span class="text-sm font-medium">Help Center</span>
+</a>
+</div>
+</div>
+</div>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col h-full min-h-screen">
+<!-- Mobile Header -->
+<div class="lg:hidden flex items-center justify-between p-4 bg-surface-light dark:bg-surface-dark border-b border-stone-200 dark:border-stone-800 sticky top-0 z-20">
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8" data-alt="User avatar mobile" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAvXKvfZQJ6Jt8JSG53v5OVPDdIx8sBqfya_78TgoghiwwFoq5SoA-cCOZN04KfTVsBUYNdh_4Y7lCgdKk5Z7ag8Yt80LfrJpT-yv6bgLAunx_ykhiLYmuqbcripXEdVkfS_-EMZPa42Q0h03Ixbqgi5uInkqkPLLZRXr8owEWMlKoWE0oAdFfDbtluXu6AVPbjOTgc1uOPDAGXL7AjjXHTFxDDcKqDq0x98-9cR_DSwzfz98qvhgBrckMYj8TsDWJJ-nUU_yIcUBk");'></div>
+<span class="font-bold text-slate-900 dark:text-white">Shopify Intel</span>
+</div>
+<button class="text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+<div class="flex-1 p-4 md:p-8 lg:px-12 xl:px-16 max-w-7xl mx-auto w-full">
+<!-- Header Section -->
+<header class="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-10">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-2 text-sm text-primary font-medium mb-1">
+<span class="material-symbols-outlined text-[18px]">analytics</span>
+<span>RESEARCH AGENT v2.4</span>
+</div>
+<h1 class="text-slate-900 dark:text-white text-3xl md:text-4xl font-black tracking-tight font-serif">Intelligence Report</h1>
+<p class="text-slate-500 dark:text-slate-400 text-sm md:text-base">Generated on Oct 24, 2023 • Product: <span class="text-slate-800 dark:text-slate-200 font-semibold">Running Shoes V2</span></p>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center justify-center gap-2 h-10 px-5 rounded-lg border border-stone-200 dark:border-stone-700 bg-surface-light dark:bg-surface-dark text-slate-700 dark:text-slate-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors text-sm font-semibold shadow-sm">
+<span class="material-symbols-outlined text-[20px]">share</span>
+<span>Share</span>
+</button>
+<button class="flex items-center justify-center gap-2 h-10 px-5 rounded-lg bg-primary hover:bg-primary-dark text-white transition-colors text-sm font-bold shadow-sm">
+<span class="material-symbols-outlined text-[20px]">download</span>
+<span>Export PDF</span>
+</button>
+</div>
+</header>
+<!-- Section 1: Executive Summary -->
+<section class="mb-8">
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl p-6 md:p-8 shadow-sm border border-stone-200 dark:border-stone-800 relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+<h2 class="text-slate-900 dark:text-white text-2xl font-serif font-bold mb-4 flex items-center gap-2">
+                            Executive Summary
+                        </h2>
+<p class="text-slate-700 dark:text-slate-300 text-lg md:text-xl font-serif leading-relaxed">
+                            The product shows strong market fit but suffers from shipping delays. Customer sentiment is trending positive due to recent quality improvements, though pricing remains a friction point compared to key competitors.
+                        </p>
+</div>
+</section>
+<!-- Section 2: Metrics Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+<!-- Sentiment Card -->
+<div class="col-span-1 md:col-span-2 bg-surface-light dark:bg-surface-dark rounded-xl p-6 shadow-sm border border-stone-200 dark:border-stone-800 flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<h3 class="text-slate-600 dark:text-slate-400 font-medium text-sm uppercase tracking-wider">Sentiment Score</h3>
+<span class="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs font-bold px-2 py-1 rounded">+5% vs last month</span>
+</div>
+<div class="flex items-end gap-3 mb-2">
+<span class="text-4xl font-mono font-bold text-slate-900 dark:text-white">78</span>
+<span class="text-slate-400 text-sm mb-1">/ 100</span>
+</div>
+<!-- Progress Bar -->
+<div class="flex w-full h-3 rounded-full overflow-hidden mt-2 bg-stone-100 dark:bg-stone-800">
+<div class="bg-status-success w-[65%]" title="Positive"></div>
+<div class="bg-stone-400 w-[20%]" title="Neutral"></div>
+<div class="bg-status-danger w-[15%]" title="Negative"></div>
+</div>
+<div class="flex justify-between mt-2 text-xs text-slate-500">
+<div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-status-success"></div> Positive (65%)</div>
+<div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-stone-400"></div> Neutral (20%)</div>
+<div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-status-danger"></div> Negative (15%)</div>
+</div>
+</div>
+<!-- Metric 1 -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl p-6 shadow-sm border border-stone-200 dark:border-stone-800">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-slate-600 dark:text-slate-400 font-medium text-sm uppercase tracking-wider">Reviews</h3>
+<span class="material-symbols-outlined text-primary/60">reviews</span>
+</div>
+<p class="text-3xl font-mono font-bold text-slate-900 dark:text-white">1,248</p>
+<p class="text-status-success text-sm font-medium mt-1 flex items-center">
+<span class="material-symbols-outlined text-sm mr-1">trending_up</span>
+                            +12%
+                        </p>
+</div>
+<!-- Metric 2 -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl p-6 shadow-sm border border-stone-200 dark:border-stone-800">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-slate-600 dark:text-slate-400 font-medium text-sm uppercase tracking-wider">Avg. Rating</h3>
+<span class="material-symbols-outlined text-primary/60">star</span>
+</div>
+<p class="text-3xl font-mono font-bold text-slate-900 dark:text-white">4.2</p>
+<p class="text-status-success text-sm font-medium mt-1 flex items-center">
+<span class="material-symbols-outlined text-sm mr-1">arrow_upward</span>
+                            +0.2
+                        </p>
+</div>
+</section>
+<!-- Section 3: Lists (Complaints vs Wants) -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+<!-- Top Complaints -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm overflow-hidden">
+<div class="p-5 border-b border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/50">
+<h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-status-danger">warning</span>
+                                Top Customer Complaints
+                            </h3>
+</div>
+<div class="p-0">
+<div class="flex items-center gap-4 p-4 border-b border-stone-100 dark:border-stone-800/50 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors">
+<span class="font-mono text-status-danger font-bold text-lg">01</span>
+<div class="flex-1">
+<p class="text-slate-800 dark:text-slate-200 font-medium">Shipping Delays &gt; 5 days</p>
+<p class="text-xs text-slate-500">Mentioned in 34% of negative reviews</p>
+</div>
+<span class="px-2 py-1 rounded bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-bold">High</span>
+</div>
+<div class="flex items-center gap-4 p-4 border-b border-stone-100 dark:border-stone-800/50 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors">
+<span class="font-mono text-status-danger font-bold text-lg opacity-80">02</span>
+<div class="flex-1">
+<p class="text-slate-800 dark:text-slate-200 font-medium">Inconsistent Sizing</p>
+<p class="text-xs text-slate-500">"Run small" keyword density high</p>
+</div>
+<span class="px-2 py-1 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-xs font-bold">Med</span>
+</div>
+<div class="flex items-center gap-4 p-4 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors">
+<span class="font-mono text-status-danger font-bold text-lg opacity-60">03</span>
+<div class="flex-1">
+<p class="text-slate-800 dark:text-slate-200 font-medium">Packaging Damaged</p>
+<p class="text-xs text-slate-500">Exterior box often crushed</p>
+</div>
+<span class="px-2 py-1 rounded bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 text-xs font-bold">Low</span>
+</div>
+</div>
+</div>
+<!-- Customer Wants -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm overflow-hidden">
+<div class="p-5 border-b border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/50">
+<h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">favorite</span>
+                                Customer Wishlist
+                            </h3>
+</div>
+<div class="p-0">
+<div class="flex items-center gap-4 p-4 border-b border-stone-100 dark:border-stone-800/50 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors">
+<span class="bg-primary/10 text-primary rounded-full p-1 material-symbols-outlined text-sm">check</span>
+<div class="flex-1">
+<p class="text-slate-800 dark:text-slate-200 font-medium">More Color Options (Neon)</p>
+<div class="w-full bg-stone-100 dark:bg-stone-800 h-1.5 rounded-full mt-2">
+<div class="bg-primary h-1.5 rounded-full" style="width: 85%"></div>
+</div>
+</div>
+<span class="font-mono text-sm font-bold text-slate-600 dark:text-slate-400">85%</span>
+</div>
+<div class="flex items-center gap-4 p-4 border-b border-stone-100 dark:border-stone-800/50 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors">
+<span class="bg-primary/10 text-primary rounded-full p-1 material-symbols-outlined text-sm">check</span>
+<div class="flex-1">
+<p class="text-slate-800 dark:text-slate-200 font-medium">Faster Returns Process</p>
+<div class="w-full bg-stone-100 dark:bg-stone-800 h-1.5 rounded-full mt-2">
+<div class="bg-primary h-1.5 rounded-full" style="width: 62%"></div>
+</div>
+</div>
+<span class="font-mono text-sm font-bold text-slate-600 dark:text-slate-400">62%</span>
+</div>
+<div class="flex items-center gap-4 p-4 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors">
+<span class="bg-primary/10 text-primary rounded-full p-1 material-symbols-outlined text-sm">check</span>
+<div class="flex-1">
+<p class="text-slate-800 dark:text-slate-200 font-medium">Eco-friendly Packaging</p>
+<div class="w-full bg-stone-100 dark:bg-stone-800 h-1.5 rounded-full mt-2">
+<div class="bg-primary h-1.5 rounded-full" style="width: 45%"></div>
+</div>
+</div>
+<span class="font-mono text-sm font-bold text-slate-600 dark:text-slate-400">45%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 4: Pricing Analysis Table -->
+<section class="mb-8">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined">payments</span>
+                        Pricing Analysis
+                    </h3>
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm overflow-x-auto">
+<table class="w-full text-left text-sm whitespace-nowrap">
+<thead class="bg-stone-50 dark:bg-stone-900/50 border-b border-stone-200 dark:border-stone-800">
+<tr>
+<th class="px-6 py-4 font-semibold text-slate-600 dark:text-slate-400">Competitor</th>
+<th class="px-6 py-4 font-semibold text-slate-600 dark:text-slate-400">Price Point</th>
+<th class="px-6 py-4 font-semibold text-slate-600 dark:text-slate-400">Gap</th>
+<th class="px-6 py-4 font-semibold text-slate-600 dark:text-slate-400 text-right">Signal</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-stone-100 dark:divide-stone-800">
+<tr class="bg-primary/5">
+<td class="px-6 py-4 font-bold text-slate-900 dark:text-white">Your Product</td>
+<td class="px-6 py-4 font-mono font-medium text-slate-700 dark:text-slate-300">$125.00</td>
+<td class="px-6 py-4 text-slate-500 dark:text-slate-400">-</td>
+<td class="px-6 py-4 text-right">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary">Current</span>
+</td>
+</tr>
+<tr>
+<td class="px-6 py-4 text-slate-700 dark:text-slate-300">Nike Zoom Fly</td>
+<td class="px-6 py-4 font-mono text-slate-600 dark:text-slate-400">$160.00</td>
+<td class="px-6 py-4 font-mono text-status-success">+$35.00</td>
+<td class="px-6 py-4 text-right">
+<span class="inline-flex items-center gap-1 text-xs text-status-success font-medium">
+<span class="material-symbols-outlined text-[16px]">trending_up</span> Advantage
+                                        </span>
+</td>
+</tr>
+<tr>
+<td class="px-6 py-4 text-slate-700 dark:text-slate-300">Adidas Ultraboost</td>
+<td class="px-6 py-4 font-mono text-slate-600 dark:text-slate-400">$190.00</td>
+<td class="px-6 py-4 font-mono text-status-success">+$65.00</td>
+<td class="px-6 py-4 text-right">
+<span class="inline-flex items-center gap-1 text-xs text-status-success font-medium">
+<span class="material-symbols-outlined text-[16px]">trending_up</span> Advantage
+                                        </span>
+</td>
+</tr>
+<tr>
+<td class="px-6 py-4 text-slate-700 dark:text-slate-300">Generic Runner X</td>
+<td class="px-6 py-4 font-mono text-slate-600 dark:text-slate-400">$85.00</td>
+<td class="px-6 py-4 font-mono text-status-danger">-$40.00</td>
+<td class="px-6 py-4 text-right">
+<span class="inline-flex items-center gap-1 text-xs text-status-danger font-medium">
+<span class="material-symbols-outlined text-[16px]">warning</span> Risk
+                                        </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Section 6: Root Cause Analysis (Highlighted) -->
+<section class="mb-8 relative rounded-xl overflow-hidden shadow-md">
+<!-- Decorative Background -->
+<div class="absolute inset-0 bg-[#F0E6C8] opacity-100 z-0">
+<!-- Abstract pattern -->
+<div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#A0522D 1px, transparent 1px); background-size: 20px 20px;"></div>
+</div>
+<div class="relative z-10 p-6 md:p-8">
+<div class="flex items-center gap-3 mb-6">
+<div class="bg-white p-2 rounded-lg shadow-sm text-accent-sienna">
+<span class="material-symbols-outlined">psychology</span>
+</div>
+<div>
+<h3 class="text-[#4A3728] text-xl font-bold font-serif">Root Cause Analysis</h3>
+<p class="text-[#8B7355] text-sm">Deep dive into sentiment drivers</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="bg-white/80 backdrop-blur-sm rounded-lg p-5 border border-[#E6D7B0]">
+<h4 class="text-accent-sienna font-bold mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">error</span>
+                                    Logistics Bottleneck
+                                </h4>
+<p class="text-[#5D4037] text-sm leading-relaxed">
+                                    Analysis indicates the primary friction point is <span class="font-bold">last-mile delivery</span> via Carrier B in the Northeast region. 78% of shipping complaints originate from zip codes beginning with 0 or 1.
+                                </p>
+</div>
+<div class="bg-white/80 backdrop-blur-sm rounded-lg p-5 border border-[#E6D7B0]">
+<h4 class="text-primary-dark font-bold mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">verified</span>
+                                    Quality Perception
+                                </h4>
+<p class="text-[#5D4037] text-sm leading-relaxed">
+                                    Users consistently mention "stitching durability" as a delightful surprise compared to the V1 model. This specific keyword cluster correlates with <span class="font-bold">5-star retention rates</span>.
+                                </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 7: Recommended Actions -->
+<section class="mb-12">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined">task_alt</span>
+                        Recommended Actions
+                    </h3>
+<div class="grid gap-4">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 bg-surface-light dark:bg-surface-dark rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm border-l-4 border-l-primary hover:shadow-md transition-shadow">
+<div class="flex-1">
+<div class="flex items-center gap-3 mb-1">
+<h4 class="text-slate-900 dark:text-white font-bold text-lg">Switch Carrier for Northeast Region</h4>
+<span class="px-2 py-0.5 bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300 text-xs font-bold uppercase rounded tracking-wide">High Priority</span>
+</div>
+<p class="text-slate-600 dark:text-slate-400 text-sm">Address the root cause of 34% of negative reviews by diversifying shipping partners for zip codes 0xxxx-1xxxx.</p>
+</div>
+<button class="shrink-0 px-4 py-2 text-sm font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors">
+                                View Partners
+                            </button>
+</div>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 bg-surface-light dark:bg-surface-dark rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm border-l-4 border-l-stone-300 dark:border-l-stone-600 hover:shadow-md transition-shadow">
+<div class="flex-1">
+<div class="flex items-center gap-3 mb-1">
+<h4 class="text-slate-900 dark:text-white font-bold text-lg">Update Size Guide with CMS</h4>
+<span class="px-2 py-0.5 bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300 text-xs font-bold uppercase rounded tracking-wide">Medium Priority</span>
+</div>
+<p class="text-slate-600 dark:text-slate-400 text-sm">Add "Fits Small" warning badge to product page to manage expectations and reduce returns.</p>
+</div>
+<button class="shrink-0 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-stone-100 dark:bg-stone-800 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors">
+                                Edit Page
+                            </button>
+</div>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 bg-surface-light dark:bg-surface-dark rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm border-l-4 border-l-stone-300 dark:border-l-stone-600 hover:shadow-md transition-shadow">
+<div class="flex-1">
+<div class="flex items-center gap-3 mb-1">
+<h4 class="text-slate-900 dark:text-white font-bold text-lg">Highlight Stitching Quality in Ads</h4>
+<span class="px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300 text-xs font-bold uppercase rounded tracking-wide">Low Priority</span>
+</div>
+<p class="text-slate-600 dark:text-slate-400 text-sm">Leverage positive sentiment data in upcoming ad creatives to boost conversion.</p>
+</div>
+<button class="shrink-0 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-stone-100 dark:bg-stone-800 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors">
+                                Create Brief
+                            </button>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="border-t border-stone-200 dark:border-stone-800 pt-6 pb-12 flex flex-col md:flex-row justify-between items-center text-xs text-slate-400 gap-4">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-status-success"></span>
+<span>AI Confidence Score: 98.4%</span>
+</div>
+<span class="hidden md:inline">•</span>
+<div class="flex items-center gap-1.5 font-mono">
+<span class="material-symbols-outlined text-[14px]">token</span>
+<span>Tokens Used: 4,210</span>
+</div>
+</div>
+<div class="flex gap-4">
+<a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-primary transition-colors" href="#">Terms of Service</a>
+</div>
+</footer>
+</div>
+</main>
+</div>
+</body></html>

@@ -1,0 +1,86 @@
+"""
+Full data ingestion pipeline: parse → validate → chunk → embed → upsert.
+"""
+
+import io
+import logging
+import pandas as pd
+from data.chunker import chunk_dataframe
+from data.embedder import embed
+from memory.qdrant_store import upsert_chunks
+
+logger = logging.getLogger(__name__)
+
+# Expected columns per data type (required)
+REQUIRED_COLUMNS = {
+    "catalog":     {"name", "price"},
+    "reviews":     {"review_text", "rating"},
+    "pricing":     {"your_price", "competitor_price"},
+    "competitors": {"competitor_name", "price"},
+}
+
+# Optional columns per type
+OPTIONAL_COLUMNS = {
+    "catalog":     {"category", "sku", "rating", "inventory", "sales_volume"},
+    "reviews":     {"sku", "date", "verified_purchase"},
+    "pricing":     {"sku", "competitor_name", "date"},
+    "competitors": {"product_title", "rating", "review_count", "features"},
+}
+
+
+def validate_schema(df: pd.DataFrame, data_type: str) -> None:
+    """Check that required columns are present (case-insensitive)."""
+    df.columns = [c.lower().strip().replace(" ", "_") for c in df.columns]
+    required = REQUIRED_COLUMNS.get(data_type, set())
+    missing = required - set(df.columns)
+    if missing:
+        raise ValueError(
+            f"Data type '{data_type}' is missing required columns: {missing}. "
+            f"Found: {list(df.columns)}"
+        )
+
+
+def ingest_file(
+    file_bytes: bytes,
+    filename: str,
+    data_type: str,
+    user_id: str,
+) -> dict:
+    """
+    Full pipeline: parse → validate → clean → chunk → embed → upsert.
+    Returns {"rows_loaded": N, "data_type": data_type}
+    """
+    # 1. Parse
+    fname = filename.lower()
+    if fname.endswith(".csv"):
+        df = pd.read_csv(io.BytesIO(file_bytes))
+    elif fname.endswith(".xlsx") or fname.endswith(".xls"):
+        df = pd.read_excel(io.BytesIO(file_bytes))
+    elif fname.endswith(".json"):
+        df = pd.read_json(io.BytesIO(file_bytes))
+    else:
+        raise ValueError(f"Unsupported file format: {filename}")
+
+    # 2. Normalize column names
+    df.columns = [c.lower().strip().replace(" ", "_") for c in df.columns]
+
+    # 3. Validate
+    validate_schema(df, data_type)
+
+    # 4. Clean
+    df = df.dropna(how="all").fillna("")
+    df = df.head(2000)  # safety cap: no OOM on huge files
+
+    # 5. Chunk
+    chunks = chunk_dataframe(df, data_type)
+
+    # 6. Embed
+    texts = [c["text"] for c in chunks]
+    vectors = embed(texts)
+
+    # 7. Upsert to Qdrant
+    collection = f"ecomm_{data_type}"
+    count = upsert_chunks(collection, chunks, vectors, user_id)
+    logger.info(f"Upserted {count} chunks to {collection} for user {user_id}")
+
+    return {"rows_loaded": len(df), "data_type": data_type}
