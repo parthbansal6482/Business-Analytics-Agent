@@ -10,8 +10,10 @@ import AgentProgress from "../components/dashboard/AgentProgress"
 import ClarificationModal from "../components/dashboard/ClarificationModal"
 import FollowUpChips from "../components/dashboard/FollowUpChips"
 import ReportCard from "../components/report/ReportCard"
+import { useNavigate } from "react-router-dom"
 
 export default function Dashboard() {
+    const navigate = useNavigate()
     const [mode, setMode] = useState<ResearchMode>("quick")
     const [queryText, setQueryText] = useState("")
 
@@ -43,6 +45,17 @@ export default function Dashboard() {
 
     return (
         <div className="flex-1 w-full max-w-4xl mx-auto px-6 py-10">
+            {/* Header / Back action */}
+            <div className="flex items-center justify-between mb-8">
+                <button
+                    onClick={() => navigate("/connect")}
+                    className="flex items-center gap-2 text-[#8a7e60] hover:text-[#b7860b] transition-colors group"
+                >
+                    <span className="material-symbols-outlined transition-transform group-hover:-translate-x-1" style={{ fontSize: 20 }}>arrow_back_ios</span>
+                    <span className="text-sm font-medium">Back to Data Sources</span>
+                </button>
+            </div>
+
             <div className="space-y-6">
                 {/* Mode Toggle */}
                 <div className="flex justify-center">

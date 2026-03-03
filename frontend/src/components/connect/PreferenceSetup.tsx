@@ -59,12 +59,12 @@ export default function PreferenceSetup() {
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-[#e5e2db] pb-4">
-                <h3 className="text-2xl font-serif font-bold text-[#181611]">Research Preferences</h3>
+                <h2 className="text-3xl font-serif font-bold text-[#181611]">Research Preferences</h2>
                 <div className="flex items-center gap-2">
                     {saving && (
                         <span className="text-xs text-[#8a7e60] animate-pulse">Saving…</span>
                     )}
-                    <span className="text-sm text-[#8a7e60]">Step 3 of 3</span>
+                    <span className="text-sm text-[#8a7e60]">Step 2 of 2</span>
                 </div>
             </div>
 
@@ -84,8 +84,8 @@ export default function PreferenceSetup() {
                                     key={kpi}
                                     onClick={() => toggleKpi(kpi)}
                                     className={`px-4 py-2 rounded-full border text-sm font-medium transition-all shadow-sm ${selected
-                                            ? "bg-[#b7860b] text-white border-[#b7860b]"
-                                            : "bg-white text-[#181611] border-[#e5e2db] hover:border-[#b7860b]/50 hover:bg-[#b7860b]/5"
+                                        ? "bg-[#b7860b] text-white border-[#b7860b]"
+                                        : "bg-white text-[#181611] border-[#e5e2db] hover:border-[#b7860b]/50 hover:bg-[#b7860b]/5"
                                         }`}
                                 >
                                     {kpi}
@@ -110,8 +110,8 @@ export default function PreferenceSetup() {
                                     key={mp}
                                     onClick={() => toggleMarketplace(mp)}
                                     className={`px-4 py-2 rounded-full border text-sm font-medium transition-all shadow-sm ${selected
-                                            ? "bg-[#b7860b] text-white border-[#b7860b]"
-                                            : "bg-white text-[#181611] border-[#e5e2db] hover:border-[#b7860b]/50 hover:bg-[#b7860b]/5"
+                                        ? "bg-[#b7860b] text-white border-[#b7860b]"
+                                        : "bg-white text-[#181611] border-[#e5e2db] hover:border-[#b7860b]/50 hover:bg-[#b7860b]/5"
                                         }`}
                                 >
                                     {mp}
@@ -137,8 +137,8 @@ export default function PreferenceSetup() {
                                 key={opt.value}
                                 onClick={() => setStyle(opt.value)}
                                 className={`flex-1 p-4 rounded-xl border text-left transition-all ${selected
-                                        ? "bg-[#b7860b]/10 border-[#b7860b] text-[#181611]"
-                                        : "bg-[#FAFAF7] border-[#e5e2db] text-[#181611] hover:border-[#b7860b]/50"
+                                    ? "bg-[#b7860b]/10 border-[#b7860b] text-[#181611]"
+                                    : "bg-[#FAFAF7] border-[#e5e2db] text-[#181611] hover:border-[#b7860b]/50"
                                     }`}
                             >
                                 <div className="flex items-center gap-2 mb-1">

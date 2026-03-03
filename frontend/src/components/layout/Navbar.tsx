@@ -27,15 +27,6 @@ export default function Navbar() {
                             Data Sources
                         </NavLink>
                         <NavLink
-                            to="/dashboard"
-                            className={({ isActive }) =>
-                                `text-sm font-medium transition-colors hover:text-[#b7860b] ${isActive ? "text-[#b7860b]" : "text-[#181611]"
-                                }`
-                            }
-                        >
-                            Dashboard
-                        </NavLink>
-                        <NavLink
                             to="/history"
                             className={({ isActive }) =>
                                 `text-sm font-medium transition-colors hover:text-[#b7860b] ${isActive ? "text-[#b7860b]" : "text-[#181611]"
