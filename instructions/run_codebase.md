@@ -42,7 +42,7 @@ QDRANT_PORT=6333
 Ensure your Docker Desktop is running, then start the database and cache:
 ```bash
 cd backend
-docker-compose up -d
+docker compose up -d
 ```
 
 ### Step 4: Run the Backend

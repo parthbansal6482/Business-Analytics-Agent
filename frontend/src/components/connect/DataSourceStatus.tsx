@@ -15,29 +15,50 @@ const SOURCE_ICONS = {
 }
 
 export default function DataSourceStatus() {
-    const { uploadStatus, filenames } = useUserStore()
+    const { uploadStatus, filenames, shopifyConnected } = useUserStore()
     const readyCount = Object.values(uploadStatus).filter(Boolean).length
     const totalCount = 4 // 4 manual uploads
 
     return (
         <div className="bg-white border border-[#e5e2db] rounded-xl p-5">
-            <div className="flex items-center justify-between mb-4">
-                <h4 className="text-sm font-semibold text-[#181611]">Manual Data Status</h4>
-                <span className={`font-mono text-sm font-bold ${readyCount >= 1 ? "text-[#15803d]" : "text-[#8a7e60]"}`}>
-                    {readyCount} of {totalCount} ready
-                </span>
-            </div>
-            <div className="flex flex-wrap gap-3">
-                {/* Manual uploads */}
-                {(Object.keys(uploadStatus) as Array<keyof typeof uploadStatus>).map((key) => (
-                    <SourceDot
-                        key={key}
-                        label={filenames[key] || SOURCE_LABELS[key]}
-                        icon={SOURCE_ICONS[key]}
-                        ready={uploadStatus[key]}
-                        isManual={true}
-                    />
-                ))}
+            <div className="flex flex-col gap-6">
+                {/* Manual Section */}
+                <div>
+                    <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-sm font-semibold text-[#181611]">Manual Data Status</h4>
+                        <span className={`font-mono text-sm font-bold ${readyCount >= 1 ? "text-[#15803d]" : "text-[#8a7e60]"}`}>
+                            {readyCount} of {totalCount} ready
+                        </span>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                        {(Object.keys(uploadStatus) as Array<keyof typeof uploadStatus>).map((key) => (
+                            <SourceDot
+                                key={key}
+                                label={filenames[key] || SOURCE_LABELS[key]}
+                                icon={SOURCE_ICONS[key]}
+                                ready={uploadStatus[key]}
+                                isManual={true}
+                            />
+                        ))}
+                    </div>
+                </div>
+
+                {/* Shopify Section */}
+                <div className="pt-4 border-t border-[#FAFAF7]">
+                    <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-sm font-semibold text-[#181611]">Shopify Integration</h4>
+                        <span className={`font-mono text-sm font-bold ${shopifyConnected ? "text-[#15803d]" : "text-[#8a7e60]"}`}>
+                            {shopifyConnected ? "Connected" : "Not Linked"}
+                        </span>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                        <SourceDot
+                            label="Shopify Store"
+                            icon="storefront"
+                            ready={shopifyConnected}
+                        />
+                    </div>
+                </div>
             </div>
         </div>
     )

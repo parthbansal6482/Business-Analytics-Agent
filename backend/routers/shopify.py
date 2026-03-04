@@ -3,9 +3,10 @@ Shopify router: OAuth flow, data sync, and connection status.
 """
 
 import logging
+from urllib.parse import urlencode
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Header, HTTPException, Request
+from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 
@@ -14,45 +15,54 @@ from db.session import AsyncSessionLocal
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/shopify", tags=["shopify"])
+SHOPIFY_API_VERSION = "2025-10"
 
 
 @router.get("/status")
 async def shopify_status(x_user_id: str = Header(default="default-user")):
     """Returns Shopify connection status for the user."""
-    async with AsyncSessionLocal() as db:
-        result = await db.execute(
-            select(ShopifyConnection).where(ShopifyConnection.user_id == x_user_id)
-        )
-        conn = result.scalar_one_or_none()
+    try:
+        async with AsyncSessionLocal() as db:
+            result = await db.execute(
+                select(ShopifyConnection).where(ShopifyConnection.user_id == x_user_id)
+            )
+            conn = result.scalar_one_or_none()
 
-        if not conn:
-            return {"connected": False}
+            if not conn:
+                return {"connected": False}
 
-        return {
-            "connected": True,
-            "shop_domain": conn.shop_domain,
-            "products_synced": conn.products_synced,
-            "orders_synced": conn.orders_synced,
-            "reviews_synced": conn.reviews_synced,
-            "last_sync": conn.last_sync.isoformat() if conn.last_sync else None,
-        }
+            return {
+                "connected": True,
+                "shop_domain": conn.shop_domain,
+                "products_synced": conn.products_synced,
+                "orders_synced": conn.orders_synced,
+                "reviews_synced": conn.reviews_synced,
+                "last_sync": conn.last_sync.isoformat() if conn.last_sync else None,
+            }
+    except Exception:
+        logger.exception("Failed to read Shopify status for user_id=%s", x_user_id)
+        return {"connected": False}
 
 
 @router.get("/auth")
-async def shopify_auth(shop: str):
+async def shopify_auth(shop: str, user_id: str | None = None):
     """Redirect user to Shopify OAuth URL."""
     import os
     api_key = os.getenv("SHOPIFY_API_KEY", "")
-    redirect_uri = os.getenv("SHOPIFY_REDIRECT_URI", "http://localhost:8000/api/shopify/callback")
+    redirect_uri = os.getenv("SHOPIFY_REDIRECT_URI", "http://127.0.0.1:8000/api/shopify/callback")
     scopes = "read_products,read_orders,read_customers"
 
     if not api_key:
         raise HTTPException(status_code=503, detail="Shopify app not configured.")
 
-    auth_url = (
-        f"https://{shop}/admin/oauth/authorize"
-        f"?client_id={api_key}&scope={scopes}&redirect_uri={redirect_uri}"
-    )
+    params = {
+        "client_id": api_key,
+        "scope": scopes,
+        "redirect_uri": redirect_uri,
+    }
+    if user_id:
+        params["state"] = user_id
+    auth_url = f"https://{shop}/admin/oauth/authorize?{urlencode(params)}"
     return RedirectResponse(url=auth_url)
 
 
@@ -60,7 +70,8 @@ async def shopify_auth(shop: str):
 async def shopify_callback(
     shop: str,
     code: str,
-    x_user_id: str = Header(default="default-user"),
+    state: str | None = None,
+    x_user_id: str | None = Header(default=None),
 ):
     """Exchange OAuth code for access_token and trigger initial sync."""
     import os
@@ -68,10 +79,11 @@ async def shopify_callback(
 
     api_key = os.getenv("SHOPIFY_API_KEY", "")
     api_secret = os.getenv("SHOPIFY_API_SECRET", "")
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
     if not api_key:
         raise HTTPException(status_code=503, detail="Shopify app not configured.")
+
+    resolved_user_id = x_user_id or state or "default-user"
 
     # Exchange code for token
     async with httpx.AsyncClient() as client:
@@ -87,11 +99,11 @@ async def shopify_callback(
     # Save to DB
     async with AsyncSessionLocal() as db:
         existing = await db.execute(
-            select(ShopifyConnection).where(ShopifyConnection.user_id == x_user_id)
+            select(ShopifyConnection).where(ShopifyConnection.user_id == resolved_user_id)
         )
         conn = existing.scalar_one_or_none()
         if not conn:
-            conn = ShopifyConnection(user_id=x_user_id)
+            conn = ShopifyConnection(user_id=resolved_user_id)
             db.add(conn)
         conn.shop_domain = shop
         conn.access_token = access_token
@@ -100,16 +112,28 @@ async def shopify_callback(
     # Trigger async sync
     import asyncio, threading
     threading.Thread(
-        target=lambda: asyncio.run(_do_sync(shop, access_token, x_user_id)),
+        target=lambda: asyncio.run(_do_sync(shop, access_token, resolved_user_id)),
         daemon=True,
     ).start()
 
-    return RedirectResponse(url=f"{frontend_url}/dashboard")
+    # Instead of redirecting the entire page, return a script to close the popup and notify the parent
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(content="""
+        <html>
+            <body>
+                <script>
+                    window.opener.postMessage({ type: 'shopify-auth-success' }, '*');
+                    window.close();
+                </script>
+                <p>Authentication successful. You can close this window.</p>
+            </body>
+        </html>
+    """)
 
 
 @router.post("/sync")
 async def trigger_sync(x_user_id: str = Header(default="default-user")):
-    """Manually trigger a Shopify re-sync."""
+    """Manually trigger a Shopify re-sync and wait until completion."""
     async with AsyncSessionLocal() as db:
         result = await db.execute(
             select(ShopifyConnection).where(ShopifyConnection.user_id == x_user_id)
@@ -118,13 +142,33 @@ async def trigger_sync(x_user_id: str = Header(default="default-user")):
         if not conn:
             raise HTTPException(status_code=404, detail="No Shopify connection found.")
 
-    import asyncio, threading
-    threading.Thread(
-        target=lambda: asyncio.run(_do_sync(conn.shop_domain, conn.access_token, x_user_id)),
-        daemon=True,
-    ).start()
+        shop_domain = conn.shop_domain
+        access_token = conn.access_token
 
-    return {"status": "sync_started"}
+    sync_result = await _do_sync(shop_domain, access_token, x_user_id)
+    forbidden_scopes = sync_result.get("forbidden_scopes", [])
+    if forbidden_scopes:
+        scopes_text = ", ".join(forbidden_scopes)
+        raise HTTPException(
+            status_code=403,
+            detail=f"Missing Shopify merchant approval for scopes: {scopes_text}. Reconnect Shopify and approve requested permissions.",
+        )
+    return await shopify_status(x_user_id=x_user_id)
+
+
+@router.delete("/disconnect")
+async def disconnect_shopify(x_user_id: str = Header(default="default-user")):
+    """Disconnect Shopify integration for the user."""
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(ShopifyConnection).where(ShopifyConnection.user_id == x_user_id)
+        )
+        conn = result.scalar_one_or_none()
+        if conn:
+            await db.delete(conn)
+            await db.commit()
+
+    return {"status": "disconnected"}
 
 
 async def _do_sync(shop_domain: str, access_token: str, user_id: str):
@@ -137,12 +181,19 @@ async def _do_sync(shop_domain: str, access_token: str, user_id: str):
     headers = {"X-Shopify-Access-Token": access_token}
     products_count = 0
     orders_count = 0
+    customers_count = 0
+    forbidden_scopes: set[str] = set()
+
+    def capture_scope_error(response_text: str):
+        for scope in ("read_products", "read_orders", "read_customers"):
+            if scope in response_text:
+                forbidden_scopes.add(scope)
 
     try:
         async with httpx.AsyncClient(timeout=30) as client:
             # Fetch products
             resp = await client.get(
-                f"https://{shop_domain}/admin/api/2024-01/products.json?limit=250",
+                f"https://{shop_domain}/admin/api/{SHOPIFY_API_VERSION}/products.json?limit=250",
                 headers=headers,
             )
             if resp.status_code == 200:
@@ -166,14 +217,74 @@ async def _do_sync(shop_domain: str, access_token: str, user_id: str):
                     buf = io.BytesIO()
                     df.to_csv(buf, index=False)
                     ingest_file(buf.getvalue(), "shopify_products.csv", "catalog", user_id)
+            else:
+                logger.warning("Shopify products fetch failed: status=%s body=%s", resp.status_code, resp.text[:500])
+                if resp.status_code == 403:
+                    capture_scope_error(resp.text)
 
-            # Fetch orders (for sales data)
+            # Fetch product count
             resp = await client.get(
-                f"https://{shop_domain}/admin/api/2024-01/orders.json?limit=250&status=any",
+                f"https://{shop_domain}/admin/api/{SHOPIFY_API_VERSION}/products/count.json",
                 headers=headers,
             )
             if resp.status_code == 200:
-                orders_count = len(resp.json().get("orders", []))
+                products_count = resp.json().get("count", products_count)
+            else:
+                logger.warning("Shopify products count failed: status=%s body=%s", resp.status_code, resp.text[:500])
+                if resp.status_code == 403:
+                    capture_scope_error(resp.text)
+
+            # Fetch orders (for sales data)
+            resp = await client.get(
+                f"https://{shop_domain}/admin/api/{SHOPIFY_API_VERSION}/orders/count.json?status=any",
+                headers=headers,
+            )
+            if resp.status_code == 200:
+                orders_count = resp.json().get("count", 0)
+            else:
+                logger.warning("Shopify orders count failed: status=%s body=%s", resp.status_code, resp.text[:500])
+                if resp.status_code == 403:
+                    capture_scope_error(resp.text)
+                fallback = await client.get(
+                    f"https://{shop_domain}/admin/api/{SHOPIFY_API_VERSION}/orders.json?limit=250&status=any",
+                    headers=headers,
+                )
+                if fallback.status_code == 200:
+                    orders_count = len(fallback.json().get("orders", []))
+                else:
+                    logger.warning(
+                        "Shopify orders fallback failed: status=%s body=%s",
+                        fallback.status_code,
+                        fallback.text[:500],
+                    )
+                    if fallback.status_code == 403:
+                        capture_scope_error(fallback.text)
+
+            # Shopify doesn't expose native "reviews" in core API; use customers as third metric.
+            resp = await client.get(
+                f"https://{shop_domain}/admin/api/{SHOPIFY_API_VERSION}/customers/count.json",
+                headers=headers,
+            )
+            if resp.status_code == 200:
+                customers_count = resp.json().get("count", 0)
+            else:
+                logger.warning("Shopify customers count failed: status=%s body=%s", resp.status_code, resp.text[:500])
+                if resp.status_code == 403:
+                    capture_scope_error(resp.text)
+                fallback = await client.get(
+                    f"https://{shop_domain}/admin/api/{SHOPIFY_API_VERSION}/customers.json?limit=250",
+                    headers=headers,
+                )
+                if fallback.status_code == 200:
+                    customers_count = len(fallback.json().get("customers", []))
+                else:
+                    logger.warning(
+                        "Shopify customers fallback failed: status=%s body=%s",
+                        fallback.status_code,
+                        fallback.text[:500],
+                    )
+                    if fallback.status_code == 403:
+                        capture_scope_error(fallback.text)
 
     except Exception as e:
         logger.error(f"Shopify sync error: {e}")
@@ -185,7 +296,16 @@ async def _do_sync(shop_domain: str, access_token: str, user_id: str):
         )
         conn = result.scalar_one_or_none()
         if conn:
-            conn.products_synced = products_count
-            conn.orders_synced = orders_count
-            conn.last_sync = datetime.now(timezone.utc)
+            if not forbidden_scopes:
+                conn.products_synced = products_count
+                conn.orders_synced = orders_count
+                conn.reviews_synced = customers_count
+                conn.last_sync = datetime.now(timezone.utc)
             await db.commit()
+
+    return {
+        "products_count": products_count,
+        "orders_count": orders_count,
+        "customers_count": customers_count,
+        "forbidden_scopes": sorted(forbidden_scopes),
+    }

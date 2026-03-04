@@ -23,7 +23,7 @@ export function useResearch() {
         }
 
         const es = new EventSource(
-            `http://localhost:8000/api/research/stream/${session_id}`
+            `http://127.0.0.1:8000/api/research/stream/${session_id}`
         )
 
         es.onmessage = (e) => {
