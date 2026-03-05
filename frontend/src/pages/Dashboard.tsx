@@ -17,7 +17,7 @@ export default function Dashboard() {
     const [mode, setMode] = useState<ResearchMode>("quick")
     const [queryText, setQueryText] = useState("")
 
-    const { isLoading, report, needsClarification, query } = useSessionStore()
+    const { isLoading, report, needsClarification, query, error } = useSessionStore()
     const { runQuery, runWithClarification } = useResearch()
     const { syncUploadStatus } = useUserStore()
 
@@ -78,6 +78,13 @@ export default function Dashboard() {
                 {/* Progress — show when loading */}
                 {isLoading && <AgentProgress />}
 
+                {/* Real backend/agent error */}
+                {error && !isLoading && (
+                    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        {error}
+                    </div>
+                )}
+
                 {/* Clarification modal */}
                 {needsClarification && !isLoading && (
                     <ClarificationModal onSubmit={handleClarificationSubmit} />
@@ -95,7 +102,7 @@ export default function Dashboard() {
                 )}
 
                 {/* Idle empty state when no report and not loading */}
-                {!isLoading && !report && !needsClarification && queryText === "" && (
+                {!isLoading && !report && !needsClarification && !error && queryText === "" && (
                     <div className="flex flex-col items-center justify-center py-16 text-center">
                         <div className="w-16 h-16 bg-[#b7860b]/10 rounded-2xl flex items-center justify-center mb-5">
                             <span className="material-symbols-outlined text-[#b7860b]" style={{ fontSize: 32 }}>psychology_alt</span>

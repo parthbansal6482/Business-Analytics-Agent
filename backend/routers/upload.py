@@ -4,7 +4,7 @@ Upload router: handles CSV/XLSX/JSON ingestion for all 4 data types.
 
 import logging
 
-from fastapi import APIRouter, File, UploadFile, HTTPException, Header
+from fastapi import APIRouter, File, UploadFile, HTTPException, Header, Form
 from fastapi.responses import JSONResponse
 
 from data.ingestion import ingest_file
@@ -58,30 +58,34 @@ async def handle_upload(file: UploadFile, data_type: str, user_id: str) -> dict:
 @router.post("/catalog")
 async def upload_catalog(
     file: UploadFile = File(...),
+    user_id: str | None = Form(default=None),
     x_user_id: str = Header(default="default-user"),
 ):
-    return await handle_upload(file, "catalog", x_user_id)
+    return await handle_upload(file, "catalog", user_id or x_user_id)
 
 
 @router.post("/reviews")
 async def upload_reviews(
     file: UploadFile = File(...),
+    user_id: str | None = Form(default=None),
     x_user_id: str = Header(default="default-user"),
 ):
-    return await handle_upload(file, "reviews", x_user_id)
+    return await handle_upload(file, "reviews", user_id or x_user_id)
 
 
 @router.post("/pricing")
 async def upload_pricing(
     file: UploadFile = File(...),
+    user_id: str | None = Form(default=None),
     x_user_id: str = Header(default="default-user"),
 ):
-    return await handle_upload(file, "pricing", x_user_id)
+    return await handle_upload(file, "pricing", user_id or x_user_id)
 
 
 @router.post("/competitors")
 async def upload_competitors(
     file: UploadFile = File(...),
+    user_id: str | None = Form(default=None),
     x_user_id: str = Header(default="default-user"),
 ):
-    return await handle_upload(file, "competitors", x_user_id)
+    return await handle_upload(file, "competitors", user_id or x_user_id)

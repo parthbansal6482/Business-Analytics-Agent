@@ -6,6 +6,7 @@ Deep mode:  intent → clarify → memory → retrieve → sentiment + pricing +
 
 import logging
 from langgraph.graph import StateGraph, END
+from langgraph.constants import Send
 
 from agent.state import AgentState
 from agent.nodes.intent_classifier import intent_classifier
@@ -23,6 +24,22 @@ from agent.nodes.fallback_node import fallback_node
 logger = logging.getLogger(__name__)
 
 
+def sentiment_parallel(state: AgentState) -> AgentState:
+    """Parallel-safe wrapper: only emit sentiment-specific keys."""
+    out = sentiment_analyzer(state)
+    return {
+        "sentiment_results": out.get("sentiment_results", {}),
+    }
+
+
+def pricing_parallel(state: AgentState) -> AgentState:
+    """Parallel-safe wrapper: only emit pricing-specific keys."""
+    out = pricing_analyst(state)
+    return {
+        "pricing_results": out.get("pricing_results", {}),
+    }
+
+
 def route_after_clarification(state: AgentState) -> str:
     if state.get("needs_clarification", False):
         return END
@@ -31,18 +48,17 @@ def route_after_clarification(state: AgentState) -> str:
     return "memory_loader"
 
 
-def route_after_retrieval(state: AgentState) -> str:
+def route_after_retrieval(state: AgentState):
+    if state.get("needs_clarification", False):
+        return END
     if state.get("error"):
         return "fallback"
     if state.get("mode", "quick") == "deep":
-        return "sentiment_analyzer"
+        return [
+            Send("sentiment_parallel", state),
+            Send("pricing_parallel", state),
+        ]
     return "report_generator"
-
-
-def route_after_analysis(state: AgentState) -> str:
-    if state.get("error"):
-        return "fallback"
-    return "business_synthesizer"
 
 
 def route_after_node(next_node: str):
@@ -63,6 +79,8 @@ def build_graph():
     graph.add_node("data_retriever",       data_retriever)
     graph.add_node("sentiment_analyzer",   sentiment_analyzer)
     graph.add_node("pricing_analyst",      pricing_analyst)
+    graph.add_node("sentiment_parallel",   sentiment_parallel)
+    graph.add_node("pricing_parallel",     pricing_parallel)
     graph.add_node("competitor_analyzer",  competitor_analyzer)
     graph.add_node("business_synthesizer", business_synthesizer)
     graph.add_node("report_generator",     report_generator)
@@ -91,22 +109,16 @@ def build_graph():
         "fallback": "fallback",
     })
 
-    # retriever → quick mode: report | deep mode: sentiment
+    # retriever → quick mode: report | deep mode: run sentiment/pricing in parallel
     graph.add_conditional_edges("data_retriever", route_after_retrieval, {
         "report_generator": "report_generator",
-        "sentiment_analyzer": "sentiment_analyzer",
         "fallback": "fallback",
+        END: END,
     })
 
-    # Deep mode analysis chain (sequential for simplicity — LangGraph parallelism needs Send API)
-    graph.add_conditional_edges("sentiment_analyzer", route_after_node("pricing_analyst"), {
-        "pricing_analyst": "pricing_analyst",
-        "fallback": "fallback",
-    })
-    graph.add_conditional_edges("pricing_analyst", route_after_node("competitor_analyzer"), {
-        "competitor_analyzer": "competitor_analyzer",
-        "fallback": "fallback",
-    })
+    # Deep mode analysis: sentiment + pricing in parallel, then competitor synthesis path.
+    graph.add_edge("sentiment_parallel", "competitor_analyzer")
+    graph.add_edge("pricing_parallel", "competitor_analyzer")
     graph.add_conditional_edges("competitor_analyzer", route_after_node("business_synthesizer"), {
         "business_synthesizer": "business_synthesizer",
         "fallback": "fallback",

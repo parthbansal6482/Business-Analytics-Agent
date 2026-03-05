@@ -26,18 +26,62 @@ def data_retriever(state: AgentState) -> AgentState:
         review_res   = search("ecomm_reviews",     query_vec, user_id, top_k=top_k)
         pricing_res  = search("ecomm_pricing",     query_vec, user_id, top_k=top_k)
         competitor_res = search("ecomm_competitors", query_vec, user_id, top_k=top_k)
+        order_res    = search("ecomm_orders",      query_vec, user_id, top_k=top_k)
+        customer_res = search("ecomm_customers",   query_vec, user_id, top_k=top_k)
 
         catalog_chunks  = [r["text"] for r in catalog_res if r.get("text")]
         review_chunks   = [r["text"] for r in review_res if r.get("text")]
         pricing_chunks  = [r["text"] for r in pricing_res if r.get("text")]
         competitor_chunks = [r["text"] for r in competitor_res if r.get("text")]
+        order_chunks    = [r["text"] for r in order_res if r.get("text")]
+        customer_chunks = [r["text"] for r in customer_res if r.get("text")]
 
         logger.info(
             f"Retrieved: catalog={len(catalog_chunks)} reviews={len(review_chunks)} "
-            f"pricing={len(pricing_chunks)} competitors={len(competitor_chunks)}"
+            f"pricing={len(pricing_chunks)} competitors={len(competitor_chunks)} "
+            f"orders={len(order_chunks)} customers={len(customer_chunks)}"
         )
 
-        publish_step(session_id, "retrieve", "done", "Data retrieved from store")
+        publish_step(
+            session_id,
+            "retrieve",
+            "done",
+            (
+                f"Found {len(catalog_chunks)} products, "
+                f"{len(review_chunks)} reviews, "
+                f"{len(pricing_chunks)} pricing records, "
+                f"{len(competitor_chunks)} competitor listings"
+            ),
+        )
+
+        total_chunks = (
+            len(catalog_chunks)
+            + len(review_chunks)
+            + len(pricing_chunks)
+            + len(competitor_chunks)
+            + len(order_chunks)
+            + len(customer_chunks)
+        )
+        if total_chunks == 0:
+            question = (
+                "I don't have any data for your account yet. "
+                "Please upload your product catalog, reviews, pricing, "
+                "or competitor data first, or connect your Shopify store."
+            )
+            publish_step(session_id, "clarify", "clarification", question)
+            return {
+                **state,
+                "catalog_chunks": [],
+                "review_chunks": [],
+                "pricing_chunks": [],
+                "competitor_chunks": [],
+                "order_chunks": [],
+                "customer_chunks": [],
+                "error": "NO_DATA",
+                "needs_clarification": True,
+                "clarification_question": question,
+                "completed_nodes": [*state.get("completed_nodes", []), "data_retriever"],
+            }
 
         return {
             **state,
@@ -45,6 +89,8 @@ def data_retriever(state: AgentState) -> AgentState:
             "review_chunks": review_chunks,
             "pricing_chunks": pricing_chunks,
             "competitor_chunks": competitor_chunks,
+            "order_chunks": order_chunks,
+            "customer_chunks": customer_chunks,
             "completed_nodes": [*state.get("completed_nodes", []), "data_retriever"],
         }
     except Exception as e:
@@ -55,5 +101,7 @@ def data_retriever(state: AgentState) -> AgentState:
             "review_chunks": [],
             "pricing_chunks": [],
             "competitor_chunks": [],
+            "order_chunks": [],
+            "customer_chunks": [],
             "error": str(e),
         }

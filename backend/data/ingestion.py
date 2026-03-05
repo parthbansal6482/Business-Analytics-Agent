@@ -17,6 +17,8 @@ REQUIRED_COLUMNS = {
     "reviews":     {"review_text", "rating"},
     "pricing":     {"your_price", "competitor_price"},
     "competitors": {"competitor_name", "price"},
+    "orders":      {"order_id", "total_price"},
+    "customers":   {"customer_id", "email"},
 }
 
 # Optional columns per type
@@ -25,6 +27,8 @@ OPTIONAL_COLUMNS = {
     "reviews":     {"sku", "date", "verified_purchase"},
     "pricing":     {"sku", "competitor_name", "date"},
     "competitors": {"product_title", "rating", "review_count", "features"},
+    "orders":      {"date", "status", "line_items", "customer_id"},
+    "customers":   {"total_spent", "orders_count", "state"},
 }
 
 

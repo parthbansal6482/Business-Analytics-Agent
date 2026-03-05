@@ -16,7 +16,7 @@ from sqlalchemy import select, desc
 
 from agent.graph import get_agent_graph
 from agent.state import AgentState
-from db.models import ResearchSession
+from db.models import ResearchSession, UploadRecord, ShopifyConnection
 from db.session import AsyncSessionLocal
 
 logger = logging.getLogger(__name__)
@@ -26,6 +26,7 @@ router = APIRouter(prefix="/api/research", tags=["research"])
 class QueryRequest(BaseModel):
     query: str
     mode: str = "quick"
+    user_id: str | None = None
 
 
 async def _run_agent_async(session_id: str, user_id: str, query: str, mode: str):
@@ -103,6 +104,24 @@ async def _save_session(session_id: str, user_id: str, query: str, mode: str, fi
         logger.error(f"Failed to save session {session_id}: {e}")
 
 
+async def _user_has_data(user_id: str) -> bool:
+    """Check if user has any uploaded or synced data before launching expensive research."""
+    async with AsyncSessionLocal() as db:
+        uploads = await db.execute(
+            select(UploadRecord.id).where(UploadRecord.user_id == user_id).limit(1)
+        )
+        if uploads.scalar_one_or_none():
+            return True
+
+        shop = await db.execute(
+            select(ShopifyConnection.id).where(ShopifyConnection.user_id == user_id).limit(1)
+        )
+        if shop.scalar_one_or_none():
+            return True
+
+    return False
+
+
 @router.post("/query")
 async def start_research(
     request: QueryRequest,
@@ -110,17 +129,32 @@ async def start_research(
     x_user_id: str = Header(default="default-user"),
 ):
     """Start a research session and return session_id for SSE stream."""
+    resolved_user_id = request.user_id or x_user_id
+
+    is_clarified = "[Clarification:" in request.query
+    if not is_clarified and not await _user_has_data(resolved_user_id):
+        return {
+            "session_id": None,
+            "user_id": resolved_user_id,
+            "needs_clarification": True,
+            "clarification_question": (
+                "I don't have any data for your account yet. "
+                "Please upload your product catalog, reviews, pricing, "
+                "or competitor data first, or connect your Shopify store."
+            ),
+        }
+
     session_id = str(uuid4())
 
     background_tasks.add_task(
         _run_agent_async,
         session_id,
-        x_user_id,
+        resolved_user_id,
         request.query,
         request.mode
     )
 
-    return {"session_id": session_id}
+    return {"session_id": session_id, "user_id": resolved_user_id}
 
 
 @router.get("/stream/{session_id}")
@@ -129,16 +163,49 @@ async def stream_progress(
     x_user_id: str = Header(default="default-user"),
 ):
     """SSE stream: subscribe to Redis pubsub for real-time agent progress."""
+    if not session_id or session_id == "null":
+        raise HTTPException(status_code=400, detail="Invalid session_id")
+
     async def event_generator():
         import os
         import redis.asyncio as aioredis
-        
-        r = aioredis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379"), decode_responses=True)
-        pubsub = r.pubsub()
-        await pubsub.subscribe(f"progress:{session_id}")
 
         try:
-            async for message in pubsub.listen():
+            r = aioredis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379"), decode_responses=True)
+            pubsub = r.pubsub()
+            await pubsub.subscribe(f"progress:{session_id}")
+        except Exception as e:
+            logger.error(f"Failed to connect to Redis for SSE: {e}")
+            yield f"data: {json.dumps({'error': 'Internal server error: Redis connection failed'})}\n\n"
+            return
+
+        HEARTBEAT_INTERVAL = 15  # seconds
+        MAX_STREAM_DURATION = 300  # 5 minutes max
+        import time
+        start_time = time.monotonic()
+
+        try:
+            while True:
+                elapsed = time.monotonic() - start_time
+                if elapsed > MAX_STREAM_DURATION:
+                    logger.warning(f"SSE stream for {session_id} exceeded max duration ({MAX_STREAM_DURATION}s)")
+                    yield f"data: {json.dumps({'step': '__done__', 'status': 'done', 'label': 'Stream timeout'})}\n\n"
+                    break
+
+                try:
+                    message = await asyncio.wait_for(
+                        pubsub.get_message(ignore_subscribe_messages=True),
+                        timeout=HEARTBEAT_INTERVAL,
+                    )
+                except asyncio.TimeoutError:
+                    # No message received within heartbeat interval — send keep-alive
+                    yield ": keepalive\n\n"
+                    continue
+
+                if message is None:
+                    yield ": keepalive\n\n"
+                    continue
+
                 if message["type"] != "message":
                     continue
 
@@ -166,8 +233,10 @@ async def stream_progress(
         headers={
             "Cache-Control": "no-cache",
             "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
         },
     )
+
 
 
 @router.get("/history")

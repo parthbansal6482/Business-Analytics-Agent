@@ -43,6 +43,9 @@ Rules:
         if parsed.get("MODE", "quick").lower() == "deep":
             mode = "deep"
 
+        # Determine if it's a simple query based on complexity
+        is_simple = parsed.get("COMPLEXITY", "").lower() == "simple"
+
         tokens = count_tokens(prompt) + count_tokens(response)
 
         publish_step(state["session_id"], "intent", "done", "Intent understood")
@@ -50,9 +53,10 @@ Rules:
         return {
             **state,
             "mode": mode,
+            "is_simple": is_simple,
             "total_tokens_used": state.get("total_tokens_used", 0) + tokens,
             "completed_nodes": [*state.get("completed_nodes", []), "intent_classifier"],
         }
     except Exception as e:
         logger.error(f"intent_classifier error: {e}")
-        return {**state, "error": str(e)}
+        return {**state, "error": str(e), "is_simple": False}

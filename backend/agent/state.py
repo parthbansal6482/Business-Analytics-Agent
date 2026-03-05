@@ -20,6 +20,13 @@ class AgentState(TypedDict):
     review_chunks: list[str]
     pricing_chunks: list[str]
     competitor_chunks: list[str]
+    order_chunks: list[str]
+    customer_chunks: list[str]
+
+    # Database metric counts
+    total_products_synced: int
+    total_orders_synced: int
+    total_customers_synced: int
 
     # Analysis outputs
     sentiment_results: dict
@@ -45,3 +52,4 @@ class AgentState(TypedDict):
     clarification_question: str
     completed_nodes: list[str]
     error: str | None
+    is_simple: bool

@@ -34,39 +34,43 @@ export default function ReportCard({ report }: ReportCardProps) {
 
             <div className="border-t border-[#e5e2db]" />
 
-            {/* 2. Sentiment Overview */}
-            <SentimentSection
-                sentiment={report.sentiment_breakdown}
-                metrics={report.key_metrics}
-            />
+            {!report.is_simple && (
+                <>
+                    {/* 2. Sentiment Overview */}
+                    <SentimentSection
+                        sentiment={report.sentiment_breakdown}
+                        metrics={report.key_metrics}
+                    />
 
-            <div className="border-t border-[#e5e2db]" />
+                    <div className="border-t border-[#e5e2db]" />
 
-            {/* 3. Complaints & Feature Requests */}
-            <ComplaintsSection
-                complaints={report.sentiment_breakdown.top_complaints}
-                featureRequests={report.sentiment_breakdown.feature_requests}
-            />
+                    {/* 3. Complaints & Feature Requests */}
+                    <ComplaintsSection
+                        complaints={report.sentiment_breakdown.top_complaints}
+                        featureRequests={report.sentiment_breakdown.feature_requests}
+                    />
 
-            <div className="border-t border-[#e5e2db]" />
+                    <div className="border-t border-[#e5e2db]" />
 
-            {/* 4. Pricing Analysis */}
-            <PricingTable pricing={report.pricing_analysis} />
+                    {/* 4. Pricing Analysis */}
+                    <PricingTable pricing={report.pricing_analysis} />
 
-            <div className="border-t border-[#e5e2db]" />
+                    <div className="border-t border-[#e5e2db]" />
 
-            {/* 5. Competitive Gaps */}
-            <CompetitiveGaps gaps={report.competitive_gaps} />
+                    {/* 5. Competitive Gaps */}
+                    <CompetitiveGaps gaps={report.competitive_gaps} />
 
-            <div className="border-t border-[#e5e2db]" />
+                    <div className="border-t border-[#e5e2db]" />
 
-            {/* 6. Root Cause (gold section) */}
-            <RootCauseBlock rootCause={report.root_cause} />
+                    {/* 6. Root Cause (gold section) */}
+                    <RootCauseBlock rootCause={report.root_cause} />
 
-            <div className="border-t border-[#e5e2db]" />
+                    <div className="border-t border-[#e5e2db]" />
 
-            {/* 7. Recommended Actions */}
-            <ActionItems actions={report.recommended_actions} />
+                    {/* 7. Recommended Actions */}
+                    <ActionItems actions={report.recommended_actions} />
+                </>
+            )}
 
             {/* 8. Footer */}
             <ReportFooter report={report} />

@@ -12,6 +12,7 @@ const STEP_LABELS: Record<AgentStep, string> = {
     competitor: "Analyzing competitors",
     synthesize: "Synthesizing insights",
     report: "Generating report",
+    __done__: "Done",
 }
 
 const STEP_ORDER: AgentStep[] = [
@@ -20,7 +21,7 @@ const STEP_ORDER: AgentStep[] = [
 ]
 
 export default function AgentProgress() {
-    const { progress, query } = useSessionStore()
+    const { progress, progressLabels, query } = useSessionStore()
 
     return (
         <div className="bg-white border border-[#e5e2db] rounded-xl p-8 animate-fade-in">
@@ -69,7 +70,7 @@ export default function AgentProgress() {
                                             ? "text-[#b91c1c]"
                                             : "text-[#8a7e60]"
                                 }`}>
-                                {STEP_LABELS[step]}
+                                {progressLabels[step] || STEP_LABELS[step]}
                                 {status === "running" && (
                                     <span className="ml-1 animate-pulse">…</span>
                                 )}

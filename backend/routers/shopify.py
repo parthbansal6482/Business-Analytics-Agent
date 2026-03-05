@@ -171,6 +171,103 @@ async def disconnect_shopify(x_user_id: str = Header(default="default-user")):
     return {"status": "disconnected"}
 
 
+def _get_next_page_url(link_header: str) -> str | None:
+    if not link_header:
+        return None
+    for link in link_header.split(","):
+        if 'rel="next"' in link:
+            return link[link.find("<") + 1:link.find(">")]
+    return None
+
+
+def _safe_date(value: str) -> str:
+    if not value:
+        return ""
+    return value[:10]
+
+
+async def _fetch_judgeme_reviews(http_client, shop_domain: str) -> list[dict]:
+    """Fetch reviews from Judge.me public API."""
+    url = "https://judge.me/api/v1/reviews"
+    page = 1
+    reviews: list[dict] = []
+    while True:
+        resp = await http_client.get(
+            url,
+            params={"shop_domain": shop_domain, "per_page": 100, "page": page},
+        )
+        if resp.status_code != 200:
+            break
+        data = resp.json()
+        batch = data.get("reviews", [])
+        if not batch:
+            break
+        reviews.extend(batch)
+        page += 1
+    return reviews
+
+
+async def _fetch_metafield_reviews(http_client, shop_domain: str, headers: dict, products: list[dict]) -> list[dict]:
+    """Fetch review-like rows from product metafields namespaces (reviews/spr)."""
+    rows: list[dict] = []
+    for p in products[:200]:
+        product_id = p.get("id")
+        if not product_id:
+            continue
+        sku = p.get("variants", [{}])[0].get("sku") or p.get("handle") or "unknown"
+        resp = await http_client.get(
+            f"https://{shop_domain}/admin/api/{SHOPIFY_API_VERSION}/products/{product_id}/metafields.json",
+            headers=headers,
+        )
+        if resp.status_code != 200:
+            continue
+        metafields = resp.json().get("metafields", [])
+        for mf in metafields:
+            namespace = (mf.get("namespace") or "").lower()
+            if namespace not in {"reviews", "spr"}:
+                continue
+            value = str(mf.get("value", "") or "").strip()
+            if not value:
+                continue
+            rating = 3
+            key = (mf.get("key") or "").lower()
+            if key in {"rating", "stars"}:
+                try:
+                    rating = float(value)
+                except Exception:
+                    rating = 3
+            rows.append({
+                "sku": sku,
+                "rating": rating,
+                "review_text": value,
+                "date": "",
+                "verified_purchase": False,
+            })
+    return rows
+
+
+def _build_synthetic_reviews_from_orders(orders: list[dict]) -> list[dict]:
+    rows: list[dict] = []
+    for order in orders:
+        # Synthetic review rows from real purchases (fallback only).
+        if order.get("fulfillment_status") not in {"fulfilled", "partial"}:
+            continue
+        order_date = _safe_date(order.get("created_at", ""))
+        for line_item in order.get("line_items", []) or []:
+            sku = line_item.get("sku") or str(line_item.get("product_id") or "unknown")
+            qty = line_item.get("quantity", 1)
+            name = line_item.get("name") or line_item.get("title") or "product"
+            rows.append({
+                "sku": sku,
+                "rating": None,
+                "review_text": f"Customer purchased {name} x{qty}",
+                "date": order_date,
+                "verified_purchase": True,
+                "is_synthetic": True,
+            })
+    return rows
+
+
 async def _do_sync(shop_domain: str, access_token: str, user_id: str):
     """Fetch data from Shopify and ingest into Qdrant."""
     import httpx
@@ -182,6 +279,7 @@ async def _do_sync(shop_domain: str, access_token: str, user_id: str):
     products_count = 0
     orders_count = 0
     customers_count = 0
+    reviews_count = 0
     forbidden_scopes: set[str] = set()
 
     def capture_scope_error(response_text: str):
@@ -191,15 +289,23 @@ async def _do_sync(shop_domain: str, access_token: str, user_id: str):
 
     try:
         async with httpx.AsyncClient(timeout=30) as client:
-            # Fetch products
-            resp = await client.get(
-                f"https://{shop_domain}/admin/api/{SHOPIFY_API_VERSION}/products.json?limit=250",
-                headers=headers,
-            )
-            if resp.status_code == 200:
-                products = resp.json().get("products", [])
-                products_count = len(products)
-
+            # 1. Fetch ALL products
+            url = f"https://{shop_domain}/admin/api/{SHOPIFY_API_VERSION}/products.json?limit=250"
+            all_products = []
+            while url:
+                resp = await client.get(url, headers=headers)
+                if resp.status_code == 200:
+                    products = resp.json().get("products", [])
+                    all_products.extend(products)
+                    url = _get_next_page_url(resp.headers.get("Link", ""))
+                else:
+                    logger.warning("Shopify products fetch failed: status=%s body=%s", resp.status_code, resp.text[:500])
+                    if resp.status_code == 403:
+                        capture_scope_error(resp.text)
+                    break
+            
+            products_count = len(all_products)
+            if all_products:
                 rows = [
                     {
                         "name": p.get("title", ""),
@@ -210,81 +316,109 @@ async def _do_sync(shop_domain: str, access_token: str, user_id: str):
                         "rating": 4.0,
                         "sales_volume": 0,
                     }
-                    for p in products
+                    for p in all_products
                 ]
-                if rows:
-                    df = pd.DataFrame(rows)
-                    buf = io.BytesIO()
-                    df.to_csv(buf, index=False)
-                    ingest_file(buf.getvalue(), "shopify_products.csv", "catalog", user_id)
-            else:
-                logger.warning("Shopify products fetch failed: status=%s body=%s", resp.status_code, resp.text[:500])
-                if resp.status_code == 403:
-                    capture_scope_error(resp.text)
+                df = pd.DataFrame(rows)
+                buf = io.BytesIO()
+                df.to_csv(buf, index=False)
+                ingest_file(buf.getvalue(), "shopify_products.csv", "catalog", user_id)
 
-            # Fetch product count
-            resp = await client.get(
-                f"https://{shop_domain}/admin/api/{SHOPIFY_API_VERSION}/products/count.json",
-                headers=headers,
-            )
-            if resp.status_code == 200:
-                products_count = resp.json().get("count", products_count)
-            else:
-                logger.warning("Shopify products count failed: status=%s body=%s", resp.status_code, resp.text[:500])
-                if resp.status_code == 403:
-                    capture_scope_error(resp.text)
-
-            # Fetch orders (for sales data)
-            resp = await client.get(
-                f"https://{shop_domain}/admin/api/{SHOPIFY_API_VERSION}/orders/count.json?status=any",
-                headers=headers,
-            )
-            if resp.status_code == 200:
-                orders_count = resp.json().get("count", 0)
-            else:
-                logger.warning("Shopify orders count failed: status=%s body=%s", resp.status_code, resp.text[:500])
-                if resp.status_code == 403:
-                    capture_scope_error(resp.text)
-                fallback = await client.get(
-                    f"https://{shop_domain}/admin/api/{SHOPIFY_API_VERSION}/orders.json?limit=250&status=any",
-                    headers=headers,
-                )
-                if fallback.status_code == 200:
-                    orders_count = len(fallback.json().get("orders", []))
+            # 2. Fetch ALL orders
+            url = f"https://{shop_domain}/admin/api/{SHOPIFY_API_VERSION}/orders.json?limit=250&status=any"
+            all_orders = []
+            while url:
+                resp = await client.get(url, headers=headers)
+                if resp.status_code == 200:
+                    orders = resp.json().get("orders", [])
+                    all_orders.extend(orders)
+                    url = _get_next_page_url(resp.headers.get("Link", ""))
                 else:
-                    logger.warning(
-                        "Shopify orders fallback failed: status=%s body=%s",
-                        fallback.status_code,
-                        fallback.text[:500],
-                    )
-                    if fallback.status_code == 403:
-                        capture_scope_error(fallback.text)
+                    logger.warning("Shopify orders fetch failed: status=%s body=%s", resp.status_code, resp.text[:500])
+                    if resp.status_code == 403:
+                        capture_scope_error(resp.text)
+                    break
+            
+            orders_count = len(all_orders)
+            if all_orders:
+                rows = [
+                    {
+                        "order_id": str(o.get("id", "")),
+                        "date": o.get("created_at", ""),
+                        "status": o.get("financial_status", ""),
+                        "total_price": o.get("total_price", 0),
+                        "line_items": str([item.get("title", "") for item in o.get("line_items", [])]),
+                        "customer_id": str(o.get("customer", {}).get("id", "") if isinstance(o.get("customer"), dict) else ""),
+                    }
+                    for o in all_orders
+                ]
+                df = pd.DataFrame(rows)
+                buf = io.BytesIO()
+                df.to_csv(buf, index=False)
+                ingest_file(buf.getvalue(), "shopify_orders.csv", "orders", user_id)
 
-            # Shopify doesn't expose native "reviews" in core API; use customers as third metric.
-            resp = await client.get(
-                f"https://{shop_domain}/admin/api/{SHOPIFY_API_VERSION}/customers/count.json",
-                headers=headers,
-            )
-            if resp.status_code == 200:
-                customers_count = resp.json().get("count", 0)
-            else:
-                logger.warning("Shopify customers count failed: status=%s body=%s", resp.status_code, resp.text[:500])
-                if resp.status_code == 403:
-                    capture_scope_error(resp.text)
-                fallback = await client.get(
-                    f"https://{shop_domain}/admin/api/{SHOPIFY_API_VERSION}/customers.json?limit=250",
-                    headers=headers,
-                )
-                if fallback.status_code == 200:
-                    customers_count = len(fallback.json().get("customers", []))
+            # 3. Fetch ALL customers
+            url = f"https://{shop_domain}/admin/api/{SHOPIFY_API_VERSION}/customers.json?limit=250"
+            all_customers = []
+            while url:
+                resp = await client.get(url, headers=headers)
+                if resp.status_code == 200:
+                    customers = resp.json().get("customers", [])
+                    all_customers.extend(customers)
+                    url = _get_next_page_url(resp.headers.get("Link", ""))
                 else:
-                    logger.warning(
-                        "Shopify customers fallback failed: status=%s body=%s",
-                        fallback.status_code,
-                        fallback.text[:500],
-                    )
-                    if fallback.status_code == 403:
-                        capture_scope_error(fallback.text)
+                    logger.warning("Shopify customers fetch failed: status=%s body=%s", resp.status_code, resp.text[:500])
+                    if resp.status_code == 403:
+                        capture_scope_error(resp.text)
+                    break
+
+            customers_count = len(all_customers)
+            if all_customers:
+                rows = [
+                    {
+                        "customer_id": str(c.get("id", "")),
+                        "email": c.get("email", ""),
+                        "total_spent": c.get("total_spent", 0),
+                        "orders_count": c.get("orders_count", 0),
+                        "state": c.get("state", ""),
+                    }
+                    for c in all_customers
+                ]
+                df = pd.DataFrame(rows)
+                buf = io.BytesIO()
+                df.to_csv(buf, index=False)
+                ingest_file(buf.getvalue(), "shopify_customers.csv", "customers", user_id)
+
+            # 4. Fetch reviews: Judge.me -> Shopify metafields -> synthetic from orders
+            review_rows: list[dict] = []
+
+            judgeme_reviews = await _fetch_judgeme_reviews(client, shop_domain)
+            if judgeme_reviews:
+                review_rows = [
+                    {
+                        "sku": r.get("product_handle", "unknown"),
+                        "rating": r.get("rating", 3),
+                        "review_text": r.get("body", "") or "",
+                        "date": _safe_date(r.get("created_at", "")),
+                        "verified_purchase": bool(r.get("verified", False)),
+                    }
+                    for r in judgeme_reviews
+                    if (r.get("body", "") or "").strip()
+                ]
+
+            if not review_rows:
+                review_rows = await _fetch_metafield_reviews(client, shop_domain, headers, all_products)
+
+            if not review_rows:
+                review_rows = _build_synthetic_reviews_from_orders(all_orders)
+
+            if review_rows:
+                df = pd.DataFrame(review_rows)
+                buf = io.BytesIO()
+                df.to_csv(buf, index=False)
+                ingest_file(buf.getvalue(), "shopify_reviews.csv", "reviews", user_id)
+                reviews_count = len(review_rows)
+            else:
+                reviews_count = 0
 
     except Exception as e:
         logger.error(f"Shopify sync error: {e}")
@@ -299,7 +433,7 @@ async def _do_sync(shop_domain: str, access_token: str, user_id: str):
             if not forbidden_scopes:
                 conn.products_synced = products_count
                 conn.orders_synced = orders_count
-                conn.reviews_synced = customers_count
+                conn.reviews_synced = reviews_count
                 conn.last_sync = datetime.now(timezone.utc)
             await db.commit()
 
@@ -307,5 +441,6 @@ async def _do_sync(shop_domain: str, access_token: str, user_id: str):
         "products_count": products_count,
         "orders_count": orders_count,
         "customers_count": customers_count,
+        "reviews_count": reviews_count,
         "forbidden_scopes": sorted(forbidden_scopes),
     }
