@@ -54,6 +54,7 @@ class ResearchReport(BaseModel):
     follow_up_suggestions: list[str]
     duration_seconds: float
     is_simple: bool = False
+    reasoning_trace: list[str] = []
 
 
 def _make_simple_report(state: AgentState) -> tuple[str, int]:
@@ -181,6 +182,25 @@ def _make_deep_report(state: AgentState) -> dict:
     order_text   = "\n".join(state.get("order_chunks", [])[:5])
     customer_text = "\n".join(state.get("customer_chunks", [])[:5])
 
+    evidence_rules = """
+EVIDENCE RULES — STRICTLY ENFORCED:
+Every claim must follow this format: Claim [Evidence: specific data point that proves this]
+
+BANNED PHRASES — never use these:
+  ✗ "customers are unhappy"  ✗ "sales are declining"  ✗ "pricing is an issue"  ✗ "competitors are stronger"
+
+REQUIRED FORMAT instead:
+  ✓ "Battery life is the top complaint (43/95 reviews, 45%) [Evidence: reviews, SKU BT-115]"
+  ✓ "Price is 16.7% above market avg [Evidence: BT-115 at ₹3,499 vs competitor avg ₹2,999]"
+  ✓ "Competitor SoundMax Pro has ANC which 31 customers requested [Evidence: reviews feature_requests]"
+
+CONFIDENCE SCORING RULES:
+  - Above 0.85 only if all 4 data sources had substantial data
+  - 0.70-0.85 if 3 sources had data
+  - Below 0.70 if only 1-2 sources had data
+  - NEVER give 1.0 or 100% — business data always has uncertainty
+"""
+
     prompt = f"""You are a senior e-commerce analyst. Generate a comprehensive intelligence report.
 
 Query: "{state['query']}"
@@ -191,7 +211,7 @@ Actual Database Metrics (Total Synced Records):
 - Total Orders: {state.get('total_orders_synced', 'Unknown')}
 - Total Customers: {state.get('total_customers_synced', 'Unknown')}
 
-BUSINESS SYNTHESIS (root cause):
+BUSINESS SYNTHESIS (root cause from 3-pass deep analysis):
 {synthesis}
 
 SENTIMENT DATA: {json.dumps(sentiment)}
@@ -201,6 +221,8 @@ CRITICAL INSTRUCTION: If the user asks for total counts, ALWAYS use the 'Actual 
 
 ORDER SIGNALS: {order_text}
 CUSTOMER SIGNALS: {customer_text}
+
+{evidence_rules}
 
 Respond with valid JSON exactly matching this schema (no markdown fences):
 {{
@@ -319,6 +341,10 @@ def report_generator(state: AgentState) -> AgentState:
         if isinstance(follow_ups, list):
             report_dict["follow_up_suggestions"] = [str(x) for x in follow_ups]
 
+        # Preserve reasoning_trace from business_synthesizer (Deep Mode only)
+        if "reasoning_trace" not in report_dict or not report_dict["reasoning_trace"]:
+            report_dict["reasoning_trace"] = state.get("reasoning_trace", [])
+
         # Validate with Pydantic
         validated = ResearchReport(**report_dict)
         report_out = validated.model_dump()
@@ -332,6 +358,7 @@ def report_generator(state: AgentState) -> AgentState:
             "estimated_cost_usd": 0.0,
             "confidence_score": report_out["confidence_score"],
             "data_completeness": report_out["data_completeness"],
+            "reasoning_trace": report_out["reasoning_trace"],
             "completed_nodes": [*state.get("completed_nodes", []), "report_generator"],
         }
 

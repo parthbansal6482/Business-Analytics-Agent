@@ -28,30 +28,46 @@ def pricing_analyst(state: AgentState) -> AgentState:
                 "completed_nodes": [*state.get("completed_nodes", []), "pricing_analyst"],
             }
 
-        pricing_text = "\n".join(pricing_chunks[:15])
-        catalog_text = "\n".join(catalog_chunks[:5])
+        catalog_text  = "\n".join(state.get("catalog_chunks",    [])[:15])
+        pricing_text  = "\n".join(state.get("pricing_chunks",    [])[:15])
+        competitor_text = "\n".join(state.get("competitor_chunks",[])[:15])
 
-        prompt = f"""You are a pricing strategist for an e-commerce brand.
+        persona = """You are a pricing strategist who previously worked at a top consulting firm advising consumer electronics brands.
+You understand that price perception matters as much as actual price.
+A product 16% above market needs to justify that premium with visible, tangible features or it will lose to competitors."""
 
-Product data:
+        instruction = """CRITICAL OUTPUT RULES:
+- Calculate exact price gap % for every SKU where competitor data exists
+- Flag products MORE than 10% above market average (danger zone)
+- Flag products MORE than 10% below market average (margin leak)
+- Correlate price changes with sales volume changes where data exists
+- Give a specific price recommendation with the target number, not just "reduce price" """
+
+        prompt = f"""{persona}
+
+Analyze this pricing data and provide a pricing intelligence report:
+
+PRODUCT CATALOG:
 {catalog_text}
 
-Pricing data (your prices vs competitors):
+PRICING DATA:
 {pricing_text}
 
-Query context: {state['query']}
+COMPETITOR PRICING:
+{competitor_text}
+
+{instruction}
 
 Respond with valid JSON only, no markdown:
 {{
-  "your_price": <your average or flagship product price as a number>,
-  "competitor_avg": <competitor average price as a number>,
-  "gap_pct": <price gap percentage, positive = you are more expensive>,
-  "price_elasticity": "<elastic/inelastic/unknown>",
-  "recommendation": "<1-2 sentence actionable pricing recommendation with specific numbers>",
-  "sku_analysis": "<which specific SKU(s) are most affected and why>"
-}}
-
-Be specific with numbers. If data shows BT-115 at ₹3499 vs competitors at ₹2999, say so."""
+  "your_price": <float, average or most common user product price>,
+  "competitor_avg": <float, average competitor price>,
+  "gap_pct": <float, (your_price - competitor_avg) / competitor_avg * 100>,
+  "price_elasticity": "<high/medium/low> — observed sensitivity to price changes",
+  "sku_analysis": "<table or list: SKU | Your Price | Comp Avg | Gap% | Status>",
+  "pricing_opportunities": ["<specific opportunity with numbers>", "<opportunity>"],
+  "recommendation": "<specific recommendation with exact target price and expected impact>"
+}}"""
 
         response = call_llm_with_retry(prompt)
         tokens = count_tokens(prompt) + count_tokens(response)

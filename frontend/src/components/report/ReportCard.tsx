@@ -6,6 +6,7 @@ import PricingTable from "./PricingTable"
 import CompetitiveGaps from "./CompetitiveGaps"
 import RootCauseBlock from "./RootCauseBlock"
 import ActionItems from "./ActionItems"
+import ReasoningTrace from "./ReasoningTrace"
 import ReportFooter from "./ReportFooter"
 
 interface ReportCardProps {
@@ -71,6 +72,9 @@ export default function ReportCard({ report }: ReportCardProps) {
                     <ActionItems actions={report.recommended_actions} />
                 </>
             )}
+
+            {/* Reasoning Trace (Deep Mode) */}
+            {report.reasoning_trace && <ReasoningTrace trace={report.reasoning_trace} />}
 
             {/* 8. Footer */}
             <ReportFooter report={report} />

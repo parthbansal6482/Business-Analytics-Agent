@@ -53,3 +53,7 @@ class AgentState(TypedDict):
     completed_nodes: list[str]
     error: str | None
     is_simple: bool
+
+    # Deep Mode reasoning trace (3-pass synthesis steps)
+    reasoning_trace: list[str]
+

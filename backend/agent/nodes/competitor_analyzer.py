@@ -24,36 +24,51 @@ def competitor_analyzer(state: AgentState) -> AgentState:
                 "completed_nodes": [*state.get("completed_nodes", []), "competitor_analyzer"],
             }
 
-        competitor_text = "\n".join(competitor_chunks[:15])
-        catalog_text = "\n".join(state.get("catalog_chunks", [])[:3])
+        catalog_text    = "\n".join(state.get("catalog_chunks",    [])[:15])
+        competitor_text = "\n".join(state.get("competitor_chunks", [])[:15])
+        pricing_text    = "\n".join(state.get("pricing_chunks",    [])[:5])
 
-        prompt = f"""You are a competitive intelligence analyst for an e-commerce brand.
+        persona = """You are a competitive intelligence analyst specializing in consumer electronics.
+You know that the most dangerous competitor gaps are the ones customers can see immediately on a product listing — battery hours, ANC yes/no, connectivity version.
+You separate features that drive purchase decisions from features that just sound good."""
 
-Your products:
+        instruction = """CRITICAL OUTPUT RULES:
+- Build an explicit feature-by-feature comparison
+- Mark each gap as CRITICAL (purchase decision driver) or MINOR (nice to have)
+- Identify the single most dangerous competitor (best combo of price + features + rating)
+- Find gaps where you are AHEAD of competitors — these are your strengths
+- Estimate how much each critical gap is costing in lost sales if data allows"""
+
+        prompt = f"""{persona}
+
+Analyze the competitive landscape for this e-commerce business:
+
+OUR PRODUCTS:
 {catalog_text}
 
-Competitor data:
+COMPETITOR PRODUCTS:
 {competitor_text}
 
-Query: {state['query']}
+OUR PRICING (sample):
+{pricing_text}
+
+{instruction}
 
 Respond with valid JSON only, no markdown:
 {{
   "gaps": [
-    "<Feature competitors have that you lack — be specific, e.g. 'ANC noise cancellation (SoundMax Pro, AudioPlus X1) — you: Missing'>",
-    "<another gap>",
-    "<another gap>",
-    "<another gap>"
+    "<CRITICAL gap: missing feature competitors have, e.g. 'CRITICAL — ANC missing; SoundMax Pro has it, 31 customers requested it'>",
+    "<CRITICAL gap>",
+    "<MINOR gap>",
+    "<MINOR gap>"
   ],
-  "positioning": "<premium/budget/value/undifferentiated>",
-  "top_threats": [
-    "<Competitor name>: <why they are a threat in one sentence>",
-    "<Competitor name>: <why they are a threat in one sentence>"
-  ],
-  "market_summary": "<2-sentence market position analysis>"
-}}
+  "strengths": ["<area where you are ahead with evidence>", "<strength>"],
+  "positioning": "<your current market position — premium/value/mid-range and why>",
+  "top_threats": ["<most dangerous competitor with reason>", "<threat>"],
+  "most_dangerous_competitor": "<name + why they're most dangerous>",
+  "competitive_summary": "<2-3 sentence competitive narrative with specific gaps and strengths>"
+}}"""
 
-Each gap should be actionable and include which competitor(s) have the feature."""
 
         response = call_llm_with_retry(prompt)
         tokens = count_tokens(prompt) + count_tokens(response)
