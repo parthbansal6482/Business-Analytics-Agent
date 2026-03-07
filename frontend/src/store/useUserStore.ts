@@ -28,7 +28,9 @@ interface UserStore {
 export const useUserStore = create<UserStore>()(
     persist(
         (set, get) => ({
-            userId: crypto.randomUUID(),
+            userId: typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+                ? crypto.randomUUID()
+                : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
             dataReady: false,
             shopifyConnected: false,
             uploadStatus: {

@@ -1,4 +1,5 @@
 import { useEffect } from "react"
+import { updatePreferences } from "../lib/api"
 import { useNavigate } from "react-router-dom"
 import ShopifyConnectCard from "../components/connect/ShopifyConnectCard"
 import ManualUploadCard from "../components/connect/ManualUploadCard"
@@ -73,7 +74,6 @@ export default function Connect() {
                 <section className="py-6 flex flex-col items-center gap-4">
                     <button
                         onClick={async () => {
-                            const { updatePreferences } = await import("../lib/api")
                             try {
                                 await updatePreferences(useUserStore.getState().preferences)
                             } catch (e) {
