@@ -57,3 +57,7 @@ class AgentState(TypedDict):
     # Deep Mode reasoning trace (3-pass synthesis steps)
     reasoning_trace: list[str]
 
+    # Chat follow-up fields
+    conversation_history: list[dict]  # [{role: "user"|"assistant", content: str}]
+    is_followup: bool                  # True if conversation_history is non-empty
+    chat_answer: str                   # Short reply for follow-up questions

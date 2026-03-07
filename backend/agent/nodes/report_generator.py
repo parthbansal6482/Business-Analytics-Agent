@@ -356,9 +356,30 @@ def report_generator(state: AgentState) -> AgentState:
 
         publish_step(session_id, "report", "done", "Report ready")
 
+        # ── Generate chat_answer for follow-up support ────────────────────
+        original_query = state["query"].split("\n\nContext from previous analysis:")[0]
+
+        if state.get("is_followup"):
+            followup_prompt = f"""You are an e-commerce business analyst.
+
+Based on this analysis report:
+{json.dumps(report_out, indent=2)[:3000]}
+
+Answer this follow-up question in 3-4 sentences.
+Be specific — cite actual numbers, product names, and findings from the report.
+Do not make up any data not present in the report.
+Be conversational but precise.
+
+Question: {original_query}"""
+
+            chat_answer = call_llm_with_retry(followup_prompt)
+        else:
+            chat_answer = report_out.get("executive_summary", "")
+
         return {
             **state,
             "report": report_out,
+            "chat_answer": chat_answer,
             "total_tokens_used": total_tokens,
             "estimated_cost_usd": 0.0,
             "confidence_score": report_out["confidence_score"],

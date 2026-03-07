@@ -50,13 +50,28 @@ Rules:
 
         publish_step(state["session_id"], "intent", "done", "Intent understood")
 
+        # ── Follow-up detection ───────────────────────────────────────────
+        history = state.get("conversation_history", [])
+        is_followup = len(history) > 0
+        updated_query = query
+
+        if is_followup:
+            last_assistant = next(
+                (m["content"] for m in reversed(history) if m["role"] == "assistant"),
+                ""
+            )
+            context = f"\n\nContext from previous analysis:\n{last_assistant[:1500]}"
+            updated_query = query + context
+
         return {
             **state,
+            "query": updated_query,
             "mode": mode,
             "is_simple": is_simple,
+            "is_followup": is_followup,
             "total_tokens_used": state.get("total_tokens_used", 0) + tokens,
             "completed_nodes": [*state.get("completed_nodes", []), "intent_classifier"],
         }
     except Exception as e:
         logger.error(f"intent_classifier error: {e}")
-        return {**state, "error": str(e), "is_simple": False}
+        return {**state, "error": str(e), "is_simple": False, "is_followup": False}

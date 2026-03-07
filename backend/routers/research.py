@@ -57,6 +57,10 @@ async def _run_agent_async(session_id: str, user_id: str, query: str, mode: str)
         "clarification_question": "",
         "completed_nodes": [],
         "error": None,
+        # Chat fields (defaults for non-chat flow)
+        "conversation_history": [],
+        "is_followup": False,
+        "chat_answer": "",
     }
 
     try:
@@ -297,4 +301,167 @@ async def get_report(
             "duration_seconds": session.duration_seconds,
             "created_at": session.created_at.isoformat(),
             "report": json.loads(session.report_json) if session.report_json else None,
+        }
+
+
+# ── Chat Models ───────────────────────────────────────────────────────────────
+
+class ChatMessage(BaseModel):
+    role: str          # "user" or "assistant"
+    content: str
+
+class ChatRequest(BaseModel):
+    query: str
+    session_id: str
+    user_id: str
+    mode: str = "quick"
+    conversation_history: list[ChatMessage] = []
+    report_context: dict | None = None   # full report JSON for follow-ups
+
+
+# ── Chat Endpoint ─────────────────────────────────────────────────────────────
+
+@router.post("/chat")
+async def chat_query(
+    req: ChatRequest,
+    x_user_id: str = Header(default="default-user"),
+):
+    """Chat endpoint for follow-up questions about a report."""
+    resolved_user_id = req.user_id or x_user_id
+    is_followup = len(req.conversation_history) > 0
+
+    # ── FAST PATH: follow-up with report context → direct LLM call ────────
+    if is_followup and req.report_context:
+        try:
+            from utils.llm import call_llm_with_retry
+
+            report = req.report_context
+
+            # Build conversation context string
+            conv_lines = []
+            for m in req.conversation_history[-10:]:   # last 10 messages max
+                role_label = "User" if m.role == "user" else "Analyst"
+                conv_lines.append(f"{role_label}: {m.content}")
+            conversation_text = "\n".join(conv_lines)
+
+            prompt = f"""You are a senior e-commerce business analyst having a conversation with a seller.
+You have already produced a detailed analysis report. Use it to answer the user's question.
+
+═══ FULL ANALYSIS REPORT ═══
+Executive Summary: {report.get('executive_summary', 'N/A')}
+
+Key Metrics:
+{json.dumps(report.get('key_metrics', {}), indent=2)}
+
+Sentiment Breakdown:
+{json.dumps(report.get('sentiment_breakdown', {}), indent=2)}
+
+Pricing Analysis:
+{json.dumps(report.get('pricing_analysis', {}), indent=2)}
+
+Competitive Gaps:
+{json.dumps(report.get('competitive_gaps', []), indent=2)}
+
+Root Cause Analysis:
+{report.get('root_cause', 'N/A')}
+
+Recommended Actions:
+{json.dumps(report.get('recommended_actions', []), indent=2)}
+
+Follow-Up Suggestions:
+{json.dumps(report.get('follow_up_suggestions', []), indent=2)}
+
+Confidence Score: {report.get('confidence_score', 'N/A')}%
+Data Completeness: {report.get('data_completeness', 'N/A')}
+
+Reasoning Trace (Deep Analysis Steps):
+{chr(10).join(report.get('reasoning_trace', [])) or 'N/A'}
+═══ END OF REPORT ═══
+
+═══ CONVERSATION SO FAR ═══
+{conversation_text}
+═══ END OF CONVERSATION ═══
+
+Current Question: {req.query}
+
+INSTRUCTIONS:
+1. Answer the question thoroughly using ONLY data from the report above.
+2. Always cite specific numbers, percentages, product names, and SKUs from the report.
+3. When explaining WHY something is happening, reference the root cause analysis and reasoning trace.
+4. If the report doesn't contain enough information to answer, say so honestly — never fabricate data.
+5. Structure your answer clearly. Use bullet points or numbered lists for multiple points.
+6. Keep your response concise but complete — typically 3-6 sentences, or more if the question is complex.
+7. If the user asks about recommendations, reference the specific actions and their expected impacts from the report."""
+
+            chat_answer = await asyncio.to_thread(call_llm_with_retry, prompt)
+
+            return {
+                "session_id": req.session_id,
+                "report": None,
+                "chat_answer": chat_answer,
+                "is_followup": True,
+            }
+        except Exception as e:
+            logger.error(f"Chat follow-up failed: {e}")
+            return {
+                "session_id": req.session_id,
+                "report": None,
+                "chat_answer": "Sorry, I encountered an error processing your question. Please try again.",
+                "is_followup": True,
+            }
+
+    # ── FULL PATH: first query or no report context → run agent graph ─────
+    initial_state: AgentState = {
+        "session_id": req.session_id,
+        "user_id": resolved_user_id,
+        "query": req.query,
+        "mode": "quick" if is_followup else req.mode,
+        "user_preferences": {},
+        "past_analyses": [],
+        "catalog_chunks": [],
+        "review_chunks": [],
+        "pricing_chunks": [],
+        "competitor_chunks": [],
+        "order_chunks": [],
+        "customer_chunks": [],
+        "sentiment_results": {},
+        "pricing_results": {},
+        "competitor_results": {},
+        "business_synthesis": "",
+        "report": {},
+        "confidence_score": 0.0,
+        "data_completeness": "Low",
+        "total_tokens_used": 0,
+        "estimated_cost_usd": 0.0,
+        "needs_clarification": False,
+        "clarification_question": "",
+        "completed_nodes": [],
+        "error": None,
+        "is_simple": False,
+        "total_products_synced": 0,
+        "total_orders_synced": 0,
+        "total_customers_synced": 0,
+        "reasoning_trace": [],
+        "conversation_history": [m.model_dump() for m in req.conversation_history],
+        "is_followup": is_followup,
+        "chat_answer": "",
+    }
+
+    try:
+        graph = get_agent_graph()
+        final_state = await asyncio.to_thread(graph.invoke, initial_state)
+
+        return {
+            "session_id": req.session_id,
+            "report": final_state.get("report") if not final_state.get("is_followup") else None,
+            "chat_answer": final_state.get("chat_answer", ""),
+            "is_followup": final_state.get("is_followup", False),
+        }
+    except Exception as e:
+        logger.error(f"Chat query failed: {e}")
+        return {
+            "session_id": req.session_id,
+            "report": None,
+            "chat_answer": "Sorry, I encountered an error processing your question. Please try again.",
+            "is_followup": True,
         }
