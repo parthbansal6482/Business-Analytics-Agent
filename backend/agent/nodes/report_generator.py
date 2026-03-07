@@ -59,30 +59,40 @@ class ResearchReport(BaseModel):
 
 def _make_simple_report(state: AgentState) -> tuple[str, int]:
     """Extremely fast path for simple data lookups."""
-    # Combine some raw chunks just in case it needs context, but keep it tight
-    catalog_text = "\n".join(state.get("catalog_chunks", [])[:3])
-    pricing_text = "\n".join(state.get("pricing_chunks", [])[:3])
-    review_text  = "\n".join(state.get("review_chunks", [])[:3])
-    order_text   = "\n".join(state.get("order_chunks", [])[:3])
-    customer_text = "\n".join(state.get("customer_chunks", [])[:3])
-    
-    prompt = f"""You are a helpful e-commerce assistant. Answer the user's simple question directly.
-    
+    catalog_text  = "\n".join(state.get("catalog_chunks", [])[:5])
+    pricing_text  = "\n".join(state.get("pricing_chunks", [])[:3])
+    review_text   = "\n".join(state.get("review_chunks",  [])[:3])
+    order_text    = "\n".join(state.get("order_chunks",   [])[:3])
+    customer_text = "\n".join(state.get("customer_chunks",[])[:3])
+
+    total_products  = state.get('total_products_synced')
+    total_orders    = state.get('total_orders_synced')
+    total_customers = state.get('total_customers_synced')
+    db_note = ""
+    if any(v not in (None, 'Unknown', 0) for v in [total_products, total_orders, total_customers]):
+        db_note = f"""
+Database Record Counts (use ONLY when query explicitly asks for totals):
+- Total Products: {total_products}
+- Total Orders: {total_orders}
+- Total Customers: {total_customers}
+"""
+
+    prompt = f"""You are a helpful e-commerce assistant. Answer the user's question directly.
+
 Query: "{state['query']}"
-
-Actual Database Metrics (Total Synced Records):
-- Total Products: {state.get('total_products_synced', 'Unknown')}
-- Total Orders: {state.get('total_orders_synced', 'Unknown')}
-- Total Customers: {state.get('total_customers_synced', 'Unknown')}
-
-Available Data Context (Recent/Relevant Samples - DO NOT COUNT THESE FOR TOTALS):
-Catalog: {catalog_text}
+{db_note}
+Data Context (use THIS to answer product/sales/complaint questions):
+Product Catalog (includes sales_volume per product): {catalog_text}
 Pricing: {pricing_text}
 Reviews: {review_text}
 Orders: {order_text}
 Customers: {customer_text}
 
-CRITICAL: If the user asks for a total count (e.g. "how many products", "total customers"), YOU MUST use the 'Actual Database Metrics' above. DO NOT count the samples listed in 'Available Data Context'.
+IMPORTANT RULES:
+- For "best-selling SKU" or "top product" questions: rank by sales_volume in the catalog data. If all tied, pick the top 3 and name them anyway. Fall back to rating if needed. NEVER say 'not determinable'.
+- Do NOT say "no orders" if catalog data has sales_volume values — those ARE the sales signal.
+- Only use Database Record Counts for explicit count/total questions.
+- NEVER output the past context verbatim. NEVER say 'Prior context considered' in your answer.
 
 Respond with valid JSON exactly matching this schema (no markdown fences):
 {{
@@ -100,26 +110,32 @@ Respond with valid JSON exactly matching this schema (no markdown fences):
 
 
 def _make_quick_report(state: AgentState, start_time: float) -> dict:
-    """Quick mode: minimal Gemini calls, focused on top insights."""
-    catalog_text = "\n".join(state.get("catalog_chunks", [])[:5])
-    pricing_text = "\n".join(state.get("pricing_chunks", [])[:5])
-    review_text  = "\n".join(state.get("review_chunks", [])[:5])
-    order_text   = "\n".join(state.get("order_chunks", [])[:5])
-    customer_text = "\n".join(state.get("customer_chunks", [])[:5])
+    """Quick mode: minimal LLM calls, focused on top insights."""
+    catalog_text  = "\n".join(state.get("catalog_chunks", [])[:10])
+    pricing_text  = "\n".join(state.get("pricing_chunks", [])[:5])
+    review_text   = "\n".join(state.get("review_chunks",  [])[:5])
+    order_text    = "\n".join(state.get("order_chunks",   [])[:5])
+    customer_text = "\n".join(state.get("customer_chunks",[])[:5])
+
+    total_products  = state.get('total_products_synced')
+    total_orders    = state.get('total_orders_synced')
+    total_customers = state.get('total_customers_synced')
+    db_note = ""
+    if any(v not in (None, 'Unknown', 0) for v in [total_products, total_orders, total_customers]):
+        db_note = f"""
+Database Record Counts (use ONLY when query asks for explicit totals):
+- Total Products: {total_products}
+- Total Orders: {total_orders}
+- Total Customers: {total_customers}
+"""
 
     prompt = f"""You are a senior e-commerce analyst. Give a quick business intelligence report.
 
 Query: "{state['query']}"
 User preferences: {state.get('user_preferences', {})}
-
-Actual Database Metrics (Total Synced Records):
-- Total Products: {state.get('total_products_synced', 'Unknown')}
-- Total Orders: {state.get('total_orders_synced', 'Unknown')}
-- Total Customers: {state.get('total_customers_synced', 'Unknown')}
-
-CRITICAL INSTRUCTION: If the user asks for total counts, ALWAYS use the 'Actual Database Metrics'. The data below are just small samples and do not represent the total dataset.
-
-Product data (Sample):
+{db_note}
+Data Context (use THIS to answer product/sales/pricing/review questions):
+Product Catalog (includes sales_volume per product — higher = better seller):
 {catalog_text}
 
 Pricing data:
@@ -134,16 +150,17 @@ Order history:
 Customer activity:
 {customer_text}
 
-Past context: {state.get('past_analyses', [])}
-IMPORTANT: If "Past context" is non-empty and the query is generic (e.g., "what should I focus on next"),
-explicitly reference at least one concrete past topic in executive_summary.
+CRITICAL RULES:
+- For best-selling SKU / top product questions: rank by sales_volume from the catalog data. If all values are tied, still pick and name the top SKUs — do NOT say 'not determinable'. Fall back to rating or inventory.
+- For explicit count questions ("how many orders"): use Database Record Counts only.
+- Never assume data is missing just because DB counts are Unknown — the catalog+review data above is your primary source.
 
 Respond with valid JSON exactly matching this schema (no markdown fences):
 {{
-  "executive_summary": "<3-4 sentence business summary with specific findings>",
+  "executive_summary": "<3-4 sentence business summary that DIRECTLY answers the query with specific data>",
   "key_metrics": {{
-    "revenue_impact": "<e.g. -22% Sales or +15% GMV>",
-    "rating_change": "<e.g. +0.3 Stars or -0.5 Stars>",
+    "revenue_impact": "<e.g. Best seller: SKU X with 11 units sold>",
+    "rating_change": "<e.g. +0.3 Stars or N/A>",
     "price_gap_pct": <float>
   }},
   "sentiment_breakdown": {{
@@ -201,24 +218,34 @@ CONFIDENCE SCORING RULES:
   - NEVER give 1.0 or 100% — business data always has uncertainty
 """
 
+    db_metrics_note = ""
+    total_products = state.get('total_products_synced')
+    total_orders   = state.get('total_orders_synced')
+    total_customers = state.get('total_customers_synced')
+    if any(v not in (None, 'Unknown', 0) for v in [total_products, total_orders, total_customers]):
+        db_metrics_note = f"""
+Database Record Counts (use ONLY when the query explicitly asks for totals/counts):
+- Total Products in DB: {total_products}
+- Total Orders in DB: {total_orders}
+- Total Customers in DB: {total_customers}
+"""
+
     prompt = f"""You are a senior e-commerce analyst. Generate a comprehensive intelligence report.
 
 Query: "{state['query']}"
 User preferences: {state.get('user_preferences', {})}
 
-Actual Database Metrics (Total Synced Records):
-- Total Products: {state.get('total_products_synced', 'Unknown')}
-- Total Orders: {state.get('total_orders_synced', 'Unknown')}
-- Total Customers: {state.get('total_customers_synced', 'Unknown')}
+⚠️ PRIMARY SOURCE — TRUST THIS ABOVE ALL ELSE:
+The following is the result of a rigorous 3-pass deep analysis. Your executive_summary and root_cause MUST
+align with this synthesis. Do NOT contradict it or invent alternative conclusions.
 
-BUSINESS SYNTHESIS (root cause from 3-pass deep analysis):
+BUSINESS SYNTHESIS:
 {synthesis}
-
-SENTIMENT DATA: {json.dumps(sentiment)}
-PRICING DATA: {json.dumps(pricing)}
-COMPETITOR DATA: {json.dumps(competitor)}
-CRITICAL INSTRUCTION: If the user asks for total counts, ALWAYS use the 'Actual Database Metrics'. The signals below are just small samples and do not represent the total dataset.
-
+{db_metrics_note}
+SUPPLEMENTARY ANALYSIS DATA:
+SENTIMENT: {json.dumps(sentiment)}
+PRICING: {json.dumps(pricing)}
+COMPETITOR: {json.dumps(competitor)}
 ORDER SIGNALS: {order_text}
 CUSTOMER SIGNALS: {customer_text}
 
@@ -226,11 +253,11 @@ CUSTOMER SIGNALS: {customer_text}
 
 Respond with valid JSON exactly matching this schema (no markdown fences):
 {{
-  "executive_summary": "<4-5 sentence comprehensive business overview with specific metrics>",
+  "executive_summary": "<4-5 sentence business overview that DIRECTLY answers the query — cite the synthesis>",
   "key_metrics": {{
-    "revenue_impact": "<e.g. -22% Sales>",
+    "revenue_impact": "<e.g. Best seller: 11 units, $979 estimated revenue>",
     "rating_change": "<e.g. +0.3 Stars>",
-    "price_gap_pct": <float from pricing data>
+    "price_gap_pct": <float from pricing data, 0.0 if unknown>
   }},
   "sentiment_breakdown": {{
     "positive_pct": <from sentiment data>, "neutral_pct": <int>, "negative_pct": <int>,
@@ -238,12 +265,12 @@ Respond with valid JSON exactly matching this schema (no markdown fences):
     "feature_requests": <from sentiment data>
   }},
   "pricing_analysis": {{
-    "your_price": <from pricing data>, "competitor_avg": <from pricing data>,
-    "gap_pct": <from pricing data>,
+    "your_price": <from pricing data, 0.0 if unknown>, "competitor_avg": <from pricing data, 0.0 if unknown>,
+    "gap_pct": <from pricing data, 0.0 if unknown>,
     "recommendation": "<specific recommendation with numbers>"
   }},
   "competitive_gaps": <from competitor data gaps list>,
-  "root_cause": "<use the business synthesis above verbatim or refine it>",
+  "root_cause": "<copy the ROOT CAUSE from the business synthesis above — do not rephrase away from it>",
   "recommended_actions": [
     {{"action": "<high-priority action>", "priority": "High", "expected_impact": "<metric>"}},
     {{"action": "<medium-priority action>", "priority": "Medium", "expected_impact": "<metric>"}},
@@ -295,28 +322,6 @@ def report_generator(state: AgentState) -> AgentState:
         report_dict["tokens_used"] = total_tokens
         report_dict["duration_seconds"] = duration
         report_dict["is_simple"] = is_simple
-
-        # Ensure prior memory context is surfaced in generic follow-up queries.
-        past = state.get("past_analyses", []) or []
-        if past:
-            summary = str(report_dict.get("executive_summary", ""))
-            lower_summary = summary.lower()
-            key_markers = ["bluetooth speaker", "margin", "margins", "pricing", "complaint"]
-            has_context_ref = any(m in lower_summary for m in key_markers)
-            query_lower = str(state.get("query", "")).lower()
-            generic_follow_up = "focus on next" in query_lower or "next" == query_lower.strip()
-            if generic_follow_up or not has_context_ref:
-                chosen = str(past[0])
-                for entry in past:
-                    entry_text = str(entry)
-                    if any(m in entry_text.lower() for m in key_markers):
-                        chosen = entry_text
-                        break
-                # Use a short snippet so summary remains readable.
-                snippet = chosen[:180].replace("\n", " ")
-                report_dict["executive_summary"] = (
-                    f"{summary} Prior context considered: {snippet}"
-                ).strip()
 
         # Normalize common LLM shape drift before strict validation.
         actions = report_dict.get("recommended_actions")

@@ -78,16 +78,7 @@ def memory_loader(state: AgentState) -> AgentState:
                         upload_counts.get("reviews", 0),
                     )
 
-                    # Also include recent session queries so follow-up questions can reference prior context.
-                    cur.execute(
-                        "SELECT query FROM sessions WHERE user_id = %s ORDER BY created_at DESC LIMIT 5",
-                        (user_id,)
-                    )
-                    recent_queries = [q[0] for q in cur.fetchall() if q and q[0]]
-                    for q in recent_queries:
-                        marker = f"Previous query: {q}"
-                        if marker not in past_analyses:
-                            past_analyses.append(marker)
+
         except Exception as db_err:
             logger.error(f"Failed to fetch DB counts in memory loader: {db_err}")
 

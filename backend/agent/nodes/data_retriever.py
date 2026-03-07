@@ -6,13 +6,14 @@ All config values are read from environment variables.
 """
 
 import os
+import re
 import json
 import logging
-import re
 
 from agent.state import AgentState
 from data.embedder import embed_one
-from memory.qdrant_store import search
+from memory.qdrant_store import search, client as qdrant_client
+from qdrant_client.models import Filter, FieldCondition, MatchValue
 from utils.sse import publish_step
 from utils.llm import call_llm_with_retry
 
@@ -63,6 +64,45 @@ No explanation. Just the JSON array."""
     return review_chunks[:RERANK_TOP_K]
 
 
+SALES_KEYWORDS = re.compile(
+    r'\b(best.?sell|top.?product|top.?sku|highest.?sales|most.?sold|'
+    r'best.?performer|sales.?rank|top.?seller|revenue.?leader)\b',
+    re.IGNORECASE
+)
+
+
+def _get_sales_ranked_catalog(user_id: str, top_n: int = 20) -> list[str]:
+    """
+    Scroll the full catalog and return top N products sorted by sales_volume.
+    Used for sales-intent queries where cosine search won't find best sellers.
+    """
+    try:
+        results, _ = qdrant_client.scroll(
+            collection_name="ecomm_catalog",
+            scroll_filter=Filter(
+                must=[FieldCondition(key="user_id", match=MatchValue(value=user_id))]
+            ),
+            limit=500,
+            with_payload=True,
+            with_vectors=False,
+        )
+        if not results:
+            return []
+
+        def _sales_vol(point):
+            v = point.payload.get("sales_volume", 0)
+            try:
+                return float(v) if v not in ("", None) else 0.0
+            except (TypeError, ValueError):
+                return 0.0
+
+        sorted_points = sorted(results, key=_sales_vol, reverse=True)
+        return [p.payload.get("text", "") for p in sorted_points[:top_n] if p.payload.get("text")]
+    except Exception as e:
+        logger.warning(f"sales-ranked catalog fetch failed: {e}")
+        return []
+
+
 def data_retriever(state: AgentState) -> AgentState:
     try:
         query      = state["query"]
@@ -88,6 +128,17 @@ def data_retriever(state: AgentState) -> AgentState:
         competitor_chunks = [r["text"] for r in competitor_res if r.get("text")]
         order_chunks      = [r["text"] for r in order_res      if r.get("text")]
         customer_chunks   = [r["text"] for r in customer_res   if r.get("text")]
+
+        # For sales-intent queries, prepend sales-ranked products so the LLM
+        # always sees actual best sellers — not just semantically similar ones.
+        if SALES_KEYWORDS.search(query):
+            sales_ranked = _get_sales_ranked_catalog(user_id, top_n=20)
+            if sales_ranked:
+                # Deduplicate: keep sales-ranked first, append any extras from semantic search
+                seen = set(sales_ranked)
+                extra = [c for c in catalog_chunks if c not in seen]
+                catalog_chunks = sales_ranked + extra
+                logger.info(f"Sales-intent query: prepended {len(sales_ranked)} sales-ranked products")
 
         # Deep Mode: LLM-based review reranking for higher signal quality
         if mode == "deep" and review_chunks:

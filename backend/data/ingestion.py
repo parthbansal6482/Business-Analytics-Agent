@@ -1,15 +1,21 @@
 """
 Full data ingestion pipeline: parse → validate → chunk → embed → upsert.
+Re-uploading a file REPLACES the previous data for that user+collection
+(delete-before-upsert ensures no stale data accumulates in Qdrant).
 """
 
 import io
+import os
 import logging
 import pandas as pd
 from data.chunker import chunk_dataframe
 from data.embedder import embed
-from memory.qdrant_store import upsert_chunks
+from memory.qdrant_store import upsert_chunks, delete_by_user
 
 logger = logging.getLogger(__name__)
+
+# Set to False to skip the delete step (useful for debugging / append mode)
+DELETE_BEFORE_UPLOAD = os.getenv("DELETE_BEFORE_UPLOAD", "true").lower() == "true"
 
 # Expected columns per data type (required)
 REQUIRED_COLUMNS = {
@@ -52,6 +58,8 @@ def ingest_file(
 ) -> dict:
     """
     Full pipeline: parse → validate → clean → chunk → embed → upsert.
+    Old data for this user+collection is deleted before upserting to prevent
+    stale data from lingering in Qdrant.
     Returns {"rows_loaded": N, "data_type": data_type}
     """
     # 1. Parse
@@ -82,8 +90,13 @@ def ingest_file(
     texts = [c["text"] for c in chunks]
     vectors = embed(texts)
 
-    # 7. Upsert to Qdrant
+    # 7. Delete old data for this user+collection BEFORE upserting
     collection = f"ecomm_{data_type}"
+    if DELETE_BEFORE_UPLOAD:
+        logger.info(f"Deleting existing data for user={user_id} in {collection} before re-upload")
+        delete_by_user(collection, user_id)
+
+    # 8. Upsert fresh data
     count = upsert_chunks(collection, chunks, vectors, user_id)
     logger.info(f"Upserted {count} chunks to {collection} for user {user_id}")
 

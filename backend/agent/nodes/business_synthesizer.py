@@ -5,6 +5,7 @@ All config comes from environment variables.
 """
 
 import os
+import time
 import logging
 from agent.state import AgentState
 from utils.llm import call_llm_with_retry, count_tokens
@@ -13,6 +14,46 @@ from utils.sse import publish_step
 logger = logging.getLogger(__name__)
 
 DEEP_TOP_K = int(os.getenv("DEEP_MODE_TOP_K", "30"))
+MAX_CHUNK_CHARS = int(os.getenv("MAX_CHUNK_CHARS", "200"))
+MAX_DATA_BLOCK_CHARS = int(os.getenv("MAX_DATA_BLOCK_CHARS", "6000"))
+
+
+def _truncate_chunks(chunks: list[str], max_chars: int = MAX_CHUNK_CHARS) -> list[str]:
+    """Truncate each chunk to a max length to stay within token budgets."""
+    return [c[:max_chars] + ("…" if len(c) > max_chars else "") for c in chunks]
+
+
+def _build_data_block(state: AgentState, top_k: int) -> str:
+    """Build the context data block with a hard character cap."""
+    sections = [
+        ("PRODUCT CATALOG DATA", state.get("catalog_chunks", [])[:top_k]),
+        ("CUSTOMER REVIEW DATA", state.get("review_chunks", [])[:top_k]),
+        ("PRICING DATA",         state.get("pricing_chunks", [])[:top_k]),
+        ("COMPETITOR DATA",      state.get("competitor_chunks", [])[:top_k]),
+    ]
+    parts = []
+    total_chars = 0
+    for title, chunks in sections:
+        if not chunks:
+            parts.append(f"{title}:\n(no data)")
+            continue
+        truncated = _truncate_chunks(chunks)
+        block = f"{title}:\n" + "\n".join(f"- {c}" for c in truncated)
+        if total_chars + len(block) > MAX_DATA_BLOCK_CHARS:
+            # Add what fits, then stop
+            remaining = MAX_DATA_BLOCK_CHARS - total_chars
+            block = block[:remaining] + "\n[…truncated to stay within token budget]"
+            parts.append(block)
+            break
+        parts.append(block)
+        total_chars += len(block)
+
+    # Always append the computed analysis results (they are small JSON dicts)
+    parts.append(f"SENTIMENT ANALYSIS RESULTS:\n{state.get('sentiment_results', {})}")
+    parts.append(f"PRICING ANALYSIS RESULTS:\n{state.get('pricing_results', {})}")
+    parts.append(f"COMPETITOR ANALYSIS RESULTS:\n{state.get('competitor_results', {})}")
+    return "\n\n".join(parts)
+
 
 STYLE_INSTRUCTIONS = {
     "margin-focused": "emphasize pricing power, cost control, and discount impact",
@@ -29,138 +70,77 @@ def business_synthesizer(state: AgentState) -> AgentState:
         style_desc     = STYLE_INSTRUCTIONS.get(analysis_style, STYLE_INSTRUCTIONS["growth-focused"])
         past_context   = "\n".join(state.get("past_analyses", []))
 
-        sentiment  = state.get("sentiment_results", {})
-        pricing    = state.get("pricing_results", {})
-        competitor = state.get("competitor_results", {})
+        # Build context data block with token budget to avoid Groq TPM limits
+        data_block = _build_data_block(state, DEEP_TOP_K)
 
-        # Build shared data block from all retrieved chunks and analysis outputs
-        data_block = f"""
-PRODUCT CATALOG DATA:
-{chr(10).join(f"- {c}" for c in state.get("catalog_chunks", [])[:DEEP_TOP_K])}
-
-CUSTOMER REVIEW DATA:
-{chr(10).join(f"- {c}" for c in state.get("review_chunks", [])[:DEEP_TOP_K])}
-
-PRICING DATA:
-{chr(10).join(f"- {c}" for c in state.get("pricing_chunks", [])[:DEEP_TOP_K])}
-
-COMPETITOR DATA:
-{chr(10).join(f"- {c}" for c in state.get("competitor_chunks", [])[:DEEP_TOP_K])}
-
-SENTIMENT ANALYSIS RESULTS:
-{sentiment}
-
-PRICING ANALYSIS RESULTS:
-{pricing}
-
-COMPETITOR ANALYSIS RESULTS:
-{competitor}
-        """.strip()
-
-        # ── PASS 1: Signal Extraction ─────────────────────────────────────────
-        publish_step(session_id, "synthesize", "in_progress", "Extracting business signals…")
-        pass1_prompt = f"""
-You are a senior e-commerce business analyst with 15 years of experience in consumer electronics.
-You specialize in finding hidden patterns in messy business data.
-
-USER QUERY: "{state["query"]}"
-USER CONTEXT: {past_context or "First session — no prior context."}
-
-Here is the full business data:
-{data_block}
-
-Your task: SIGNAL EXTRACTION ONLY.
-
-Extract every signal you can observe. Include:
-- Revenue and sales signals (which products are up/down and by how much)
-- Customer complaint signals (what specific issues appear repeatedly)
-- Pricing signals (where is the user over or underpriced vs competitors)
-- Feature gap signals (what do competitors have that this store doesn't)
-- Inventory signals (overstock or stockout risks)
-- Trend signals (anything changing over time)
-- Weak signals (things that might matter but need more data to confirm)
-
-Format as a numbered list. Be exhaustive. Do not draw conclusions yet.
-Every signal must reference specific data points with numbers where available.
-
-Good signal: "Battery complaints appear in 43 of 95 reviews (45%), specifically on SKU BT-115, concentrated in the last 60 days."
-Bad signal: "Customers are unhappy." (too vague, no data reference)
-""".strip()
-
-        signals = call_llm_with_retry(pass1_prompt)
-        tokens = count_tokens(pass1_prompt) + count_tokens(signals)
-
-        # ── PASS 2: Critical Challenge ─────────────────────────────────────────
-        publish_step(session_id, "synthesize", "in_progress", "Challenging the signals…")
-        pass2_prompt = f"""
-You are a skeptical business consultant reviewing a junior analyst's findings.
-
-ORIGINAL USER QUERY: "{state["query"]}"
-
-SIGNALS FOUND:
-{signals}
-
-Your task: CRITICAL ANALYSIS.
-
-For each signal answer:
-1. Is this signal STRONG (backed by solid data) or WEAK (could be noise)?
-2. What alternative explanation could there be?
-3. Are any signals contradicting each other? Which is more likely correct?
-4. What important data is MISSING that would change the conclusion?
-5. Which 3-5 signals most directly answer: "{state["query"]}"?
-
-Be ruthless. Flag weak signals. The user needs accurate conclusions, not confident-sounding guesses.
-""".strip()
-
-        critique = call_llm_with_retry(pass2_prompt)
-        tokens += count_tokens(pass2_prompt) + count_tokens(critique)
-
-        # ── PASS 3: Final Synthesis ────────────────────────────────────────────
-        publish_step(session_id, "synthesize", "in_progress", "Synthesizing root cause…")
-        pass3_prompt = f"""
-You are a Category P&L owner at a top-tier e-commerce company.
-Root causes are almost never singular — they are combinations of 2-3 factors.
-You never give vague conclusions. Every claim has a number behind it.
+        # ── PASS 1: Signal Extraction + Critical Analysis (combined) ──────────
+        publish_step(session_id, "synthesize", "in_progress", "Extracting and evaluating business signals…")
+        pass1_prompt = f"""You are a senior e-commerce business analyst and skeptical consultant.
 
 USER QUERY: "{state["query"]}"
 ANALYSIS STYLE: {analysis_style} — {style_desc}
+PRIOR CONTEXT: {past_context or "First session."}
 
-SIGNALS IDENTIFIED:
-{signals}
+BUSINESS DATA:
+{data_block}
 
-CRITICAL ANALYSIS:
-{critique}
+TASK — Do both steps in sequence:
 
-Produce:
+STEP A — SIGNAL EXTRACTION:
+List every observable signal with specific numbers. Cover: sales/revenue signals,
+customer complaints, pricing gaps vs competitors, feature gaps, inventory risks.
+Mark each as STRONG or WEAK with a short reason.
 
-1. ROOT CAUSE (1-2 sentences)
-   Must include specific numbers. Must combine at least 2 signals.
+STEP B — CRITICAL FILTER:
+From Step A, identify the 3-5 signals that most directly answer: "{state["query"]}"
+Rule out signals that are noise or missing data. Note any contradictions.
 
-2. SUPPORTING EVIDENCE (3-5 bullet points)
-   Strongest signals backing your conclusion. Each must have a number.
+Format:
+SIGNALS:
+1. [STRONG/WEAK] <signal with numbers>
+...
 
-3. WHAT WAS RULED OUT (2-3 bullet points)
-   Signals that looked important but were noise or secondary.
+KEY SIGNALS FOR QUERY:
+- <most relevant signal>
+...
 
-4. CONFIDENCE ASSESSMENT
-   How confident are you? What would change this conclusion?
-
-5. BUSINESS IMPACT ESTIMATE
-   Approximate revenue/margin impact. Estimate if needed — say so clearly.
-
-Apply the {analysis_style} lens throughout.
+WHAT WAS RULED OUT:
+- <noise signal and why>
+...
 """.strip()
 
-        synthesis = call_llm_with_retry(pass3_prompt)
-        tokens += count_tokens(pass3_prompt) + count_tokens(synthesis)
+        signals_and_critique = call_llm_with_retry(pass1_prompt)
+        tokens = count_tokens(pass1_prompt) + count_tokens(signals_and_critique)
+
+        # Brief pause between passes
+        time.sleep(3)
+
+        # ── PASS 2: Final Synthesis ────────────────────────────────────────────
+        publish_step(session_id, "synthesize", "in_progress", "Synthesizing root cause…")
+        pass2_prompt = f"""You are a Category P&L owner. Every claim needs a number. Root causes combine 2-3 factors.
+
+USER QUERY: "{state["query"]}"
+
+ANALYSIS:
+{signals_and_critique}
+
+Produce:
+1. ROOT CAUSE (1-2 sentences with specific numbers, combining at least 2 signals)
+2. SUPPORTING EVIDENCE (3-5 bullet points, each with a number)
+3. WHAT WAS RULED OUT (2-3 bullets)
+4. CONFIDENCE ASSESSMENT (0-100% with reasoning)
+5. BUSINESS IMPACT ESTIMATE (revenue/margin in $ or %, state if estimated)
+""".strip()
+
+        synthesis = call_llm_with_retry(pass2_prompt)
+        tokens += count_tokens(pass2_prompt) + count_tokens(synthesis)
 
         reasoning_trace = [
-            f"PASS 1 — SIGNAL EXTRACTION:\n{signals}",
-            f"PASS 2 — CRITICAL CHALLENGE:\n{critique}",
-            f"PASS 3 — FINAL SYNTHESIS:\n{synthesis}",
+            f"PASS 1 — SIGNAL EXTRACTION & CRITICAL ANALYSIS:\n{signals_and_critique}",
+            f"PASS 2 — FINAL SYNTHESIS:\n{synthesis}",
         ]
 
-        publish_step(session_id, "synthesize", "done", "Deep analysis complete (3-pass reasoning)")
+        publish_step(session_id, "synthesize", "done", "Deep analysis complete (2-pass reasoning)")
 
         return {
             **state,

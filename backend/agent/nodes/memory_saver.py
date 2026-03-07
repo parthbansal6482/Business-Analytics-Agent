@@ -24,12 +24,14 @@ def memory_saver(state: AgentState) -> AgentState:
         user_id = state["user_id"]
         report = state.get("report", {})
 
-        # Create a 2-sentence session summary
+        # Create a clean session summary for future memory retrieval.
+        # Important: do NOT use "Query: ... Findings: ..." format — that gets
+        # regurgitated verbatim in future answers as "Prior context considered".
+        exec_summary = report.get('executive_summary', '')[:200]
         summary = (
-            f"Query: {state['query'][:100]}. "
-            f"Findings: {report.get('executive_summary', '')[:200]}. "
-            f"Mode: {state.get('mode', 'quick')}. "
-            f"Confidence: {report.get('confidence_score', 0)}%."
+            f"Previous analysis on '{state['query'][:80]}': "
+            f"{exec_summary}. "
+            f"Confidence: {report.get('confidence_score', 0)}."
         )
 
         # Embed and upsert to ecomm_user_memory

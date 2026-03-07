@@ -44,15 +44,28 @@ async def handle_upload(file: UploadFile, data_type: str, user_id: str) -> dict:
     contents = await file.read()
     if not contents:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+
+    # Check previous row count so we can report how many rows were replaced
+    async with AsyncSessionLocal() as db:
+        prev_result = await db.execute(
+            select(UploadRecord.row_count)
+            .where(UploadRecord.user_id == user_id, UploadRecord.data_type == data_type)
+            .order_by(UploadRecord.created_at.desc())
+            .limit(1)
+        )
+        prev_row = prev_result.scalar()
+        previous_rows = prev_row or 0
+
     try:
         result = ingest_file(contents, file.filename or "upload.csv", data_type, user_id)
         await _save_upload_record(user_id, data_type, result["rows_loaded"])
-        return result
+        return {**result, "previous_rows": previous_rows, "replaced": previous_rows > 0}
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         logger.error(f"Upload error ({data_type}): {e}")
         raise HTTPException(status_code=500, detail=f"Ingestion failed: {e}")
+
 
 
 @router.post("/catalog")
