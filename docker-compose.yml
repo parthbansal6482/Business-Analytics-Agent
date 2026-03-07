@@ -89,7 +89,7 @@ services:
       QDRANT_URL: http://qdrant:6333
       REDIS_URL: redis://redis:6379
       POSTGRES_URL: postgresql+asyncpg://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-ecomm_agent}
-      FRONTEND_URL: http://localhost:5173
+      FRONTEND_URL: http://192.168.0.132:5173
 #    depends_on:
  #     postgres:
   #      condition: service_healthy
@@ -106,7 +106,7 @@ services:
     ports:
       - "5173:5173"
     environment:
-      VITE_API_URL: http://localhost:8000
+      VITE_API_URL: http://192.168.0.132:8000
     depends_on:
       - backend
 
