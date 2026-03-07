@@ -49,12 +49,12 @@ services:
       - "6334:6334"
     volumes:
       - qdrantdata:/qdrant/storage
-    healthcheck:
-      test: [ "CMD-SHELL", "wget -q -O - http://localhost:6333/healthz > /dev/null 2>&1 || curl -sf http://localhost:6333/healthz || exit 1" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 10s
+ #   healthcheck:
+ #     test: [ "CMD-SHELL", "wget -q -O - http://localhost:6333/healthz > /dev/null 2>&1 || curl -sf http://localhost:6333/healthz || exit 1" ]
+ #     interval: 10s
+ #     timeout: 5s
+ #     retries: 10
+ #     start_period: 10s
   # healthcheck removed
   # ── Application ───────────────────────────────────────
 
@@ -77,8 +77,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      qdrant:
-        condition: service_healthy
+#      qdrant:
+#        condition: service_healthy
 
   frontend:
     build:
