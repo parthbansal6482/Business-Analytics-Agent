@@ -1,41 +1,87 @@
 # E-Commerce Intelligence Research Agent
 
-An AI-powered business analytics platform that leverages **LangGraph**, **Gemini 2.0 Flash**, and a modern web stack to provide deep insights into e-commerce data (Shopify integration).
+An AI-powered business analytics platform that leverages **LangGraph**, **Gemini 2.0 Flash**, and a modern web stack to provide deep insights into e-commerce data, specifically optimized for Shopify integration.
 
 ---
 
 ## 🚀 Overview
 
-This project is a sophisticated research agent designed to help e-commerce businesses analyze their performance, understand customer behavior, and generate actionable reports. It combines the power of Large Language Models (LLMs) with robust data engineering and a sleek dashboard.
+This project is a sophisticated research agent designed to help e-commerce businesses analyze their performance, understand customer behavior, and generate actionable reports. It combines the power of Large Language Models (LLMs) with robust data engineering and a sleek, interactive dashboard.
 
 ### Key Features
 
-- **AI Research Agent**: Built with LangGraph for complex, multi-step Reasoning and Acting (ReAct).
-- **Gemini 2.0 Flash**: High-speed, high-intelligence LLM from Google.
-- **Shopify Integration**: Seamless data ingestion and synchronization for products, orders, and customers.
-- **Vector Memory**: Uses Qdrant for storing and retrieving contextual information.
-- **Relational Data**: PostgreSQL manages structured business data.
-- **Interactive Dashboard**: A responsive React (Vite/TypeScript) frontend with rich visualizations using Recharts.
+- **Multi-Mode AI Research Agent**: Built with LangGraph for complex, multi-step Reasoning and Acting (ReAct). Supports both "Quick" and "Deep" analysis modes.
+- **Gemini 2.0 Flash**: High-speed, high-intelligence LLM from Google used for intent classification, analysis, and report generation.
+- **Shopify Integration**: Seamless data ingestion and synchronization for products, orders, and customers via Shopify's REST/GraphQL APIs.
+- **Vector Memory & RAG**: Uses Qdrant for storing and retrieving contextual information (catalog, reviews, competitors) to minimize hallucinations.
+- **Structured Data Management**: PostgreSQL manages structured business metrics and session history.
+- **Rich Dashboard**: A responsive React (Vite/TypeScript) frontend with interactive visualizations using Recharts and Tailwind CSS.
+
+---
+
+## 🏗️ Architecture
+
+The system follows a modular architecture with a clear separation between the agentic reasoning layer, the data layer, and the presentation layer.
+
+### Agentic Flow (LangGraph)
+
+```mermaid
+graph TD
+    User([User Query]) --> Intent[Intent Classifier]
+    Intent --> Clarify{Needs Clarification?}
+    Clarify -- Yes --> User
+    Clarify -- No --> Memory[Memory Loader]
+    Memory --> Retriever[Data Retriever]
+    Retriever --> Mode{Mode Check}
+    Mode -- Quick --> Report[Report Generator]
+    Mode -- Deep --> Analyze[Combined Analyzer]
+    Analyze --> Synth[Business Synthesizer]
+    Synth --> Report
+    Report --> Save[Memory Saver]
+    Save --> End([Final Report])
+    
+    %% Error Handling
+    Intent -.-> Fallback[Fallback Node]
+    Memory -.-> Fallback
+    Retriever -.-> Fallback
+    Analyze -.-> Fallback
+    Fallback --> End
+```
+
+### AI Research Agent (LangGraph)
+
+The core intelligence is orchestrated using LangGraph, which manages the stateful flow of a research task.
+
+#### Agent Workflow (Deep Mode)
+1.  **Intent Classifier**: Analyzes the user's query to determine the research objective and scope.
+2.  **Clarification Check**: Identifies if more information is needed from the user before proceeding.
+3.  **Memory Loader**: Fetches user preferences and historical context from previous sessions.
+4.  **Data Retriever**: Performs RAG (Retrieval-Augmented Generation) against the Qdrant vector store to pull relevant product, pricing, and competitor data.
+5.  **Combined Analyzer**: Executes a multi-pass analysis on the retrieved data, focusing on sentiment, pricing trends, and competitor benchmarking.
+6.  **Business Synthesizer**: Aggregates analysis results into a high-level business strategy and executive summary.
+7.  **Report Generator**: Constructs a structured JSON report with sections for findings, visualizations, and recommendations.
+8.  **Memory Saver**: Persists the session's findings back to the vector store for future recall.
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### Backend
-- **Framework**: [FastAPI](https://fastapi.tiangolo.com/)
+- **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Asynchronous API layer)
 - **Agent Orchestration**: [LangGraph](https://langchain-ai.github.io/langgraph/) & [LangChain](https://python.langchain.com/)
 - **LLM**: [Google Gemini 2.0 Flash](https://aistudio.google.com/app/apikey)
-- **Database**: [PostgreSQL](https://www.postgresql.org/) (Async via SQLAlchemy/asyncpg)
-- **Vector Search**: [Qdrant](https://qdrant.tech/)
+- **Database**: [PostgreSQL](https://www.postgresql.org/) (via SQLAlchemy & asyncpg)
+- **Vector Search**: [Qdrant](https://qdrant.tech/) (Vector memory and RAG)
 - **Caching/Task Storage**: [Redis](https://redis.io/)
-- **Embeddings**: Local `sentence-transformers`
+- **Embeddings**: `sentence-transformers` (Local execution for efficiency)
 
 ### Frontend
-- **Framework**: [React](https://react.dev/) (with [Vite](https://vitejs.dev/))
+- **Framework**: [React](https://react.dev/) (Vite-based)
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) & [Shadcn UI](https://ui.shadcn.com/)
 - **State Management**: [Zustand](https://github.com/pmndrs/zustand)
 - **Data Fetching**: [TanStack Query](https://tanstack.com/query/latest)
+- **Charts**: [Recharts](https://recharts.org/)
 - **Icons**: [Lucide React](https://lucide.dev/)
 
 ---
@@ -44,20 +90,27 @@ This project is a sophisticated research agent designed to help e-commerce busin
 
 ```text
 .
-├── backend/                # FastAPI application
-│   ├── agent/             # LangGraph nodes and graph definition
+├── backend/                # API and AI Logic
+│   ├── agent/             # LangGraph nodes, state, and graph definition
+│   │   ├── nodes/         # Individual reasoning/analysis nodes
+│   │   ├── graph.py       # Graph wiring and routing logic
+│   │   └── state.py       # Shared state definition
 │   ├── data/              # Data ingestion and Shopify sync logic
 │   ├── db/                # SQLAlchemy models and migrations
 │   ├── memory/            # Qdrant vector store integration
-│   ├── routers/           # API endpoints (Upload, Research, Shopify, etc.)
-│   └── main.py            # Entry point
+│   ├── routers/           # FastAPI routers (Upload, Research, Shopify, Memory)
+│   ├── utils/             # Logging, prompt templates, and helpers
+│   └── main.py            # FastAPI entry point
 ├── frontend/               # React TypeScript frontend
 │   ├── src/
-│   │   ├── components/    # UI components
-│   │   ├── hooks/         # Custom React hooks
-│   │   ├── pages/         # Page layouts
-│   │   └── store/         # Zustand state stores
+│   │   ├── components/    # UI components (Chat, Dashboard, Reports, Connect)
+│   │   ├── hooks/         # Custom React hooks (API interaction)
+│   │   ├── pages/         # Dashboard, History, and Connection pages
+│   │   ├── store/         # Zustand state stores
+│   │   └── lib/           # Utility functions and API clients
 │   └── package.json
+├── instructions/           # Deployment and setup guides
+├── sample data/            # CSV files for testing (catalog, reviews, pricing)
 └── docker-compose.yml      # Infrastructure (Postgres, Qdrant, Redis)
 ```
 
@@ -71,20 +124,19 @@ This project is a sophisticated research agent designed to help e-commerce busin
 - Docker & Docker Compose
 
 ### 1. Infrastructure Setup
-Spin up the required services using Docker:
+Spin up the required services (Postgres, Qdrant, Redis):
 ```bash
 docker-compose up -d
 ```
-This starts PostgreSQL, Qdrant, and Redis.
 
 ### 2. Backend Setup
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+source venv/bin/activate  # Windows: venv\\Scripts\\activate
 pip install -r requirements.txt
 cp .env.example .env
-# Fill in your GOOGLE_API_KEY and other credentials in .env
+# Fill in GOOGLE_API_KEY and other credentials in .env
 python main.py
 ```
 
@@ -94,7 +146,7 @@ cd frontend
 npm install
 npm run dev
 ```
-The frontend will be available at `http://localhost:5173`.
+Access the application at `http://localhost:5173`.
 
 ---
 
@@ -103,18 +155,18 @@ The frontend will be available at `http://localhost:5173`.
 ### Backend (`backend/.env`)
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `GOOGLE_API_KEY` | Your Google Gemini API Key | Required |
+| `GOOGLE_API_KEY` | Gemini API Key from Google AI Studio | Required |
 | `POSTGRES_URL` | PostgreSQL connection string | `postgresql+asyncpg://user:password@localhost:5432/ecomm_agent` |
 | `QDRANT_URL` | Qdrant service URL | `http://localhost:6333` |
 | `REDIS_URL` | Redis connection string | `redis://localhost:6379` |
-| `SHOPIFY_API_KEY` | Shopify App API Key | Optional |
-| `SHOPIFY_API_SECRET`| Shopify App Secret | Optional |
+| `SHOPIFY_API_KEY` | Shopify Partner App API Key | Optional |
+| `SHOPIFY_API_SECRET`| Shopify Partner App Secret | Optional |
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
 
 ## 📄 License
 
