@@ -15,7 +15,7 @@ from data.embedder import embed_one
 from memory.qdrant_store import search, client as qdrant_client
 from qdrant_client.models import Filter, FieldCondition, MatchValue
 from utils.sse import publish_step
-from utils.llm import call_llm_with_retry
+from utils.llm import call_llm_with_retry, count_tokens
 
 logger = logging.getLogger(__name__)
 
@@ -24,10 +24,10 @@ DEEP_TOP_K   = int(os.getenv("DEEP_MODE_TOP_K",  "30"))
 RERANK_TOP_K = int(os.getenv("RERANK_TOP_K",     "15"))
 
 
-def rerank_reviews(query: str, review_chunks: list[str]) -> list[str]:
+def rerank_reviews(query: str, review_chunks: list[str]) -> tuple[list[str], int]:
     """LLM-based review reranking — only used in Deep Mode."""
     if len(review_chunks) <= RERANK_TOP_K:
-        return review_chunks
+        return review_chunks, 0
 
     rerank_prompt = f"""You are filtering customer reviews for relevance to a business question.
 
@@ -57,11 +57,12 @@ No explanation. Just the JSON array."""
             ]
             if reranked:
                 logger.info(f"Review reranking: {len(review_chunks)} -> {len(reranked)} chunks")
-                return reranked
+                tokens = count_tokens(rerank_prompt) + count_tokens(result)
+                return reranked, tokens
     except Exception as e:
         logger.warning(f"Review reranking failed (using top-K fallback): {e}")
 
-    return review_chunks[:RERANK_TOP_K]
+    return review_chunks[:RERANK_TOP_K], 0
 
 
 SALES_KEYWORDS = re.compile(
@@ -141,8 +142,9 @@ def data_retriever(state: AgentState) -> AgentState:
                 logger.info(f"Sales-intent query: prepended {len(sales_ranked)} sales-ranked products")
 
         # Deep Mode: LLM-based review reranking for higher signal quality
+        tokens_rerank = 0
         if mode == "deep" and review_chunks:
-            review_chunks = rerank_reviews(query, review_chunks)
+            review_chunks, tokens_rerank = rerank_reviews(query, review_chunks)
 
         logger.info(
             f"Retrieved ({mode}): catalog={len(catalog_chunks)} reviews={len(review_chunks)} "
@@ -195,6 +197,7 @@ def data_retriever(state: AgentState) -> AgentState:
             "competitor_chunks": competitor_chunks,
             "order_chunks":      order_chunks,
             "customer_chunks":   customer_chunks,
+            "total_tokens_used": state.get("total_tokens_used", 0) + tokens_rerank,
             "completed_nodes": [*state.get("completed_nodes", []), "data_retriever"],
         }
     except Exception as e:

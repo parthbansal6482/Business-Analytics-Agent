@@ -104,6 +104,6 @@ def call_llm_with_retry(prompt: str, retries: int = 6) -> str:
 
 
 def count_tokens(text: str) -> int:
-    """Rough token estimate (4 chars ≈ 1 token)."""
+    """Rough token estimate (4 chars ≈ 1 token). Source of truth for all modules."""
     return max(1, len(text) // 4)
 

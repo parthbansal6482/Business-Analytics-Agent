@@ -7,6 +7,7 @@ Tokens are tracked for transparency / judge scoring.
 import asyncio
 import logging
 from sqlalchemy.ext.asyncio import AsyncSession
+from utils.llm import count_tokens
 
 logger = logging.getLogger(__name__)
 
@@ -17,8 +18,8 @@ def get_session_cost(total_tokens: int) -> float:
 
 
 def estimate_tokens(text: str) -> int:
-    """Rough estimate: 4 chars ≈ 1 token."""
-    return max(1, len(text) // 4)
+    """DEPRECATED: Use utils.llm.count_tokens instead."""
+    return count_tokens(text)
 
 
 async def log_tokens(
