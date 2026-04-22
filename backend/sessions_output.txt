@@ -1,0 +1,137 @@
+Total sessions: 122
+Session ID: 787f367a-bcc1-402c-9c97-aa37c5867ed6, User ID: default-user, Query: Why are BT-115 sales dropping so fast?
+Session ID: 0302b291-106e-47b0-8a9e-bb23455cf35d, User ID: default-user, Query: Which products should I discount?
+Session ID: 7ff714d5-eaa5-4fd7-a7a4-86efd5393b9b, User ID: default-user, Query: Which products should I discount?
+Session ID: b8fb07bb-4074-4d9c-91d7-5f43e77c57b0, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: 72a8f1d9-f041-4114-8ba3-ea6d2778d01a, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: 9f12f83a-29f8-40cb-95c9-bda8e1a8f7ac, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: what is my best selling product and why ??
+Session ID: f276a266-527a-48f6-96b1-4077da1c4ebd, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: what is my best selling product and why ??
+Session ID: 17a52e3b-4916-48c6-bb6b-4cbd1a378798, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: 98bbef28-697f-40a4-9f1b-8fefeb3e066b, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: 386b424e-70e2-425b-bca8-1fab93f1f55b, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: a2e32ce2-8909-4a53-abb5-16522f8e3959, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: 27dbde98-9b7e-486b-a40b-fad7e0d5d404, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: 0dfce42f-9b6c-400e-998b-eac48ab4ae0d, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: 91995be4-9ebf-4ca5-9bba-01a886e8b3d0, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: e4954eff-1650-4710-8cf4-c96a8e12c998, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: b28ef6e5-b67d-467d-af81-1c4a6d665895, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Summarize review sentiment
+Session ID: c666683c-a460-4232-b12a-5ff4aec60344, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: 9c9416ce-4b68-4529-8ed1-a0c5648b6d42, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: what is my best selling sku
+Session ID: 2cbc761f-f149-4985-80db-d9820817aad6, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: cbee455a-4479-480e-8031-b32c9607223b, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: 134c5645-e9ae-42ac-9b4d-d5d9c1e8eb38, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: 63c1a7b3-32a2-4757-ba7b-1483f6e36319, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: 9ce51d0e-0347-460b-ab40-429dd32bbcce, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: 0560baf7-d59b-4ef1-85b1-827b770dd927, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: 1ab2655a-6e2f-445c-ac00-ee12c1f76f41, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: 514955d2-6c45-488f-a9d8-f4b45020ecc2, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: ab227789-eadd-402e-8efe-9973574eed6a, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: 2da4f0d8-ed40-43e0-abaa-2d8f7cf57cf4, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: 99728bd3-d709-4240-a5e2-f564b28254ea, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: ce46aaed-56e3-4f44-8524-4c2d2eb0eab9, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: what is my most ordered product. state with good reasons. also explain if it's better than my competitor's.
+Session ID: d4295747-125c-4711-8493-15c7a67ab115, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: what is my most ordered product. state with good reasons. also explain if it's better than my competitor's.
+Session ID: 6564d08f-e59b-482c-b162-e939d3e7c414, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: best selling product
+Session ID: 82f4ce32-5af2-441b-982e-50ea83291dff, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: how many customers do i have listed??
+Session ID: d2b04079-d895-4806-84f7-fffdf554ea23, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: list all the products that are out of stock
+
+Session ID: 20dcc8bc-d395-407d-be40-2744431d50ee, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: what is the total no of products in my inventory
+Session ID: d83c8f33-9731-4f9d-ab53-8eb152bb5ea0, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: total no of products??
+Session ID: d1e39953-732d-4203-8b5d-548d2963c852, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: how many products do i have ??
+Session ID: 6e944822-23d4-47cb-8439-5bdeee6278bc, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: how many products do i have ??
+Session ID: 98586260-4876-45db-ba1f-7b8036140207, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: how many products do i have listed??
+Session ID: a37a15c5-61f8-4946-b0fd-339c72ecb6f5, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: how many customers do i have listed??
+Session ID: 72c79776-dc83-4a24-9e51-1c9eb50ac822, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: how many products do i have??
+Session ID: 5218341e-b688-46f4-85b0-98b304137bc6, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: how many products do i have??
+Session ID: c22f0982-e38c-4721-bb48-5f5ae0c0d0af, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: how many products do i have?
+Session ID: 367b7cbf-992b-4b8f-9c3f-366c1e5d0ac9, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: how many products do i have?
+Session ID: 255af29f-7728-47a2-8812-aabad490b5b1, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: how many categories of products do i have
+
+Session ID: 3549a14d-d90d-4cda-bce6-7418c5304550, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: divide my products into categories and tell me how many categories can be made according to you
+
+Session ID: adb70669-3a79-4a20-b209-8da5d2f9b28b, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: divide my products into categories and tell me how many categories can be made according to you
+
+Session ID: ac6637b1-37de-4f71-bb87-eb7c764a27ca, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: Top complaints for my best-selling SKU
+Session ID: ef50a7ba-ead0-41cc-867c-1114c4a704b9, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: why is my best selling sku underperforming??
+Session ID: 2cceba86-7d71-44dd-b7ab-2f4b8eb3eae9, User ID: default-user, Query: health test query
+Session ID: 9254a4eb-f023-444e-952b-523e360e8773, User ID: test-user-1, Query: Why is my best selling product underperforming and what should I do?
+Session ID: 0d1b96be-0a15-4985-a91c-4e6b59b332a5, User ID: memory-test-user, Query: Analyze my bluetooth speaker performance. I care most about margins.
+Session ID: ccb02a96-eec2-492d-bc78-22e1695dc520, User ID: memory-test-user, Query: What should I focus on next?
+Session ID: 2ea55580-49cb-4490-956a-8f154cdc23da, User ID: memory-test-user, Query: Analyze my bluetooth speaker performance. I care most about margins.
+Session ID: aba046c0-a6e0-4709-96b3-f5ce6bab3f6f, User ID: memory-test-user, Query: What should I focus on next?
+Session ID: 77de5c39-d59a-4a85-ac0f-460e75624c17, User ID: memory-test-user, Query: Analyze my bluetooth speaker performance. I care most about margins.
+Session ID: faf82dfa-e957-471f-8a3b-fe3a811831e5, User ID: memory-test-user, Query: What should I focus on next?
+Session ID: b01ba36b-2637-4375-839a-359c92d2dcf3, User ID: memory-test-user, Query: Analyze my bluetooth speaker performance. I care most about margins.
+Session ID: 4785f5b4-5922-49d0-afb7-a3510b7302e3, User ID: memory-test-user, Query: What should I focus on next?
+Session ID: 3618badf-84b8-4cc5-aef5-a01fc4a7eb1b, User ID: memory-test-user, Query: What should I focus on next?
+Session ID: 742b67a1-ce86-47e2-ac9b-af02d7b91c2b, User ID: memory-test-user, Query: What should I focus on next?
+Session ID: ddae5485-12d1-476a-836e-168eaa9bec74, User ID: memory-test-user, Query: What should I focus on next?
+Session ID: 7a3acfa7-d239-43fa-bbc6-c1bf35c47cbc, User ID: memory-test-user, Query: What should I focus on next?
+Session ID: a30eff2a-1c6c-4d31-b7fa-750efb78a5d8, User ID: test-user-1, Query: What are my top customer complaints and how do they compare to competitors?
+Session ID: 443d5a0c-82da-4896-a557-5a19e13e62eb, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Why is my best selling sku underperforming?
+Session ID: d4553e67-5ec0-4448-8a11-9b8b4a308748, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: Why is my best selling sku underperforming?
+Session ID: 75a50304-900d-44a5-95ed-9cb47b27aaba, User ID: default-user, Query: why are sales down?
+Session ID: c245b60a-a1e8-474a-98be-7c6931ebcdc1, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: Why is my best selling sku underperforming?
+Session ID: e335fe77-fbfe-4f58-afe2-c96d9d4c81eb, User ID: default-user, Query: why are sales down?
+Session ID: cdf78314-88d2-438f-a225-f54665ff8d54, User ID: brand-new-user, Query: why are sales down? [Clarification: skip]
+Session ID: e3f50ce9-7c7b-4176-b201-4598f5e17bfd, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: why is my best selling sku underperforming??
+Session ID: d06e1bc1-daa5-4540-a21b-ef8a1504df60, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: why is my best selling sku underperforming??
+Session ID: f91da714-215e-4e59-86dc-e8f71499ada2, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: why is my best selling sku underperforming??
+Session ID: 0b2a2e8e-7338-4fb3-9b5f-44ffc2b368b5, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: what is my best selling sku and why it is underperforming??
+Session ID: d7bd17b1-8a58-40f8-a9e9-9a6550c2f960, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: what is my best selling sku and why it is underperforming??
+Session ID: 03cbceeb-a925-471f-b1b3-03c92dd7bf89, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: which products have bad reviews and why are they not performing good??
+Session ID: 7ec15fec-d4fa-44a9-98e3-df7cda84e945, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: Top complaints for my best-selling SKU
+Session ID: b065dff2-bebd-42fb-8b81-91ec064bb30b, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: Top complaints for my best-selling SKU
+Session ID: e9fe49fb-b793-4364-9603-9a6acc963a20, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: Top complaints for my best-selling SKU
+Session ID: 6d296a61-fc56-47ef-a161-ab45fde8dba4, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: Top complaints for my best-selling SKU
+Session ID: 80d9281c-39b4-4a89-bdc8-20daba168c59, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: Top complaints for my best-selling SKU
+Session ID: 6a21220e-a40b-41b1-8b3f-bfe94a83a6e0, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: Top complaints for my best-selling SKU
+Session ID: 687dc68b-668d-46c7-ab00-112c6d6fef79, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: What features do competitors have that I don't?
+Session ID: f21d72f1-e3cb-486e-a567-b71929b2ad02, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: What features do competitors have that I don't?
+Session ID: 4d048322-debf-4af2-9b16-fdd14fb75f7d, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: what is my best selling product
+
+Session ID: 93f9e1b4-d463-49ad-9682-ef207fcefbc4, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: which product has low inventory?
+
+Session ID: 68e9a5d7-c88c-4207-8c70-a1deb030bd71, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: which is my best selling product according to sales volume
+Session ID: 2f6fc4b2-2e37-42dd-ae29-dfa2098d0075, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: which product has most reviews
+
+Session ID: bcd8172f-31a8-4513-bfad-a34abea78680, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: are there any duplicate reviews??
+Session ID: b5ab9eb9-019b-4c4e-90c4-e0a5c078097d, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: Top complaints for my best-selling SKU
+Session ID: ed634cb8-63a4-40c7-8422-03521c5c0900, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: Top complaints for my best-selling SKU
+Session ID: 60c41521-5bd7-4426-9afc-93812dfaa81f, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: Top complaints for my best-selling SKU
+Session ID: bfe5aa07-ced0-47b5-8986-53cda6338aaa, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: why is my best selling sku underperforming??
+Session ID: 48a9f278-6531-4b21-9101-15c10d44d2a3, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: what is my best selling sku
+
+Session ID: 265702f4-d927-467f-83e1-08b395d17b7d, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: what is my best selling sku
+
+Session ID: 9faec59d-8752-46ad-a44a-176d7506d8ea, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: why is my best selling sku underperforming ??
+Session ID: 72ca9ff8-d8e9-42b1-9dc5-7b2c863dc6ef, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: why is my best selling sku underperforming ??
+Session ID: c040c333-1c11-4fd8-8ecf-4b63075a5a89, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: what is my best selling SKU
+Session ID: 0d26a286-d19f-4224-a270-c46bfb1e377c, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: what is my best selling SKU
+Session ID: 476a641e-8d8e-408a-b40c-d86184063a85, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: what is my best selling SKU
+Session ID: 3f0f76b5-d254-42c9-b75f-8a633ed951ec, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: what is my best selling SKU
+Session ID: c059d293-159f-4a1a-a441-132886296d6a, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: what is my best selling SKU
+Session ID: 7c98ca2a-0b7a-46d7-b994-27894b9d3170, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: which is my best selling sku?
+
+Session ID: 6366178b-56d8-4fd6-9216-e371d393dd22, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: which is my best selling sku?
+
+Session ID: ea94a57a-cb22-4ba4-b07c-d0e09695b08d, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: which is my best selling sku?
+
+Session ID: 92762031-bc75-4f4c-bfe3-8e1848d9a242, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: which is my best selling sku?
+
+Session ID: c41b6509-d44d-4df3-bb47-d0578ca85d62, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: which is my best selling sku?
+
+Session ID: 75afe7bc-4fb0-464d-9aa6-9a817e68c0e6, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: why is my top selling sku underperforming??
+Session ID: 902fc59f-272d-4f21-bc71-df4527d67091, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: why is my top selling sku underperforming??
+Session ID: 762cd161-cfbe-404d-9c3f-b1db39189752, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: Why is this product underperforming?
+Session ID: ff909b7b-08dc-455c-8e4d-f5a595f41250, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: why is my best selling sku underperforming ??
+Session ID: 0c3683b9-ad16-4175-bb1d-a652fb503d63, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: why is my best selling sku underperforming ??
+Session ID: e12fa977-d43f-4386-95f8-b39c7edc1d9f, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: why is my best selling sku underperforming ??
+Session ID: 420edbeb-848c-48fe-a1a6-5fbef2e81190, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: why is my best selling sku unerperforming ??
+Session ID: 64ab496a-2a2e-44dd-a788-868db09e9202, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: underperforming sku
+Session ID: 4a4e39db-5aff-4e3a-82a5-e49953f9d9c2, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: why is my best selling sku underperforming ??
+Session ID: 7bb75254-2e3c-4b83-b64e-21790e1472d8, User ID: 365f6651-2343-43cf-b175-110b4c3b3360, Query: why is my best selling sku underperforming ??
+Session ID: 5055b5da-d788-4aff-b4b4-6eb680a2570a, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: b8a43839-3c97-4a8f-8859-798a82c281a5, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: aaaf2555-1c68-4edc-ba6d-b91ffd185697, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: f6f974a0-7362-4016-95cd-cc6cfbad6dea, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
+Session ID: c2181e37-7116-4331-9440-dca3f7b87407, User ID: 568e8195-6e3d-4729-99bd-fabc48dab580, Query: Top complaints for my best-selling SKU
