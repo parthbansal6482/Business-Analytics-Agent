@@ -12,7 +12,7 @@ This project is a sophisticated research agent designed to help e-commerce busin
 
 - **Multi-Mode AI Research Agent**: Built with LangGraph for complex, multi-step Reasoning and Acting (ReAct). Supports both "Quick" and "Deep" analysis modes.
 - **Gemini 2.0 Flash**: High-speed, high-intelligence LLM from Google used for intent classification, analysis, and report generation.
-- **Shopify Integration**: Seamless data ingestion and synchronization for products, orders, and customers via Shopify's REST/GraphQL APIs.
+- **Shopify Integration**: Seamless data ingestion for products, orders, and customers (Note: Currently hidden in UI to prioritize manual uploads).
 - **Vector Memory & RAG**: Uses Qdrant for storing and retrieving contextual information (catalog, reviews, competitors) to minimize hallucinations.
 - **Structured Data Management**: PostgreSQL manages structured business metrics and session history.
 - **Rich Dashboard**: A responsive React (Vite/TypeScript) frontend with interactive visualizations using Recharts and Tailwind CSS.
@@ -118,49 +118,40 @@ The core intelligence is orchestrated using LangGraph, which manages the statefu
 
 ## ⚙️ Getting Started
 
+The entire application is containerized for a one-command setup.
+
 ### Prerequisites
-- Python 3.10+
-- Node.js 18+
 - Docker & Docker Compose
 
-### 1. Infrastructure Setup
-Spin up the required services (Postgres, Qdrant, Redis):
-```bash
-docker-compose up -d
-```
+### One-Command Setup
 
-### 2. Backend Setup
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\\Scripts\\activate
-pip install -r requirements.txt
-cp .env.example .env
-# Fill in GOOGLE_API_KEY and other credentials in .env
-python main.py
-```
+1.  **Configure Environment**:
+    ```bash
+    cp .env.example .env
+    # Fill in your API keys in the root .env
+    ```
 
-### 3. Frontend Setup
-```bash
-cd frontend
-npm install
-npm run dev
-```
-Access the application at `http://localhost:5173`.
+2.  **Start the System**:
+    ```bash
+    docker compose up --build
+    ```
+    - **Frontend**: http://localhost:5173
+    - **Backend**: http://localhost:8000
+    - **Infrastructure**: Postgres, Redis, Qdrant
 
 ---
 
 ## 📝 Environment Variables
 
-### Backend (`backend/.env`)
+The application uses a **single `.env` file** in the root directory.
+
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `GOOGLE_API_KEY` | Gemini API Key from Google AI Studio | Required |
-| `POSTGRES_URL` | PostgreSQL connection string | `postgresql+asyncpg://user:password@localhost:5432/ecomm_agent` |
-| `QDRANT_URL` | Qdrant service URL | `http://localhost:6333` |
-| `REDIS_URL` | Redis connection string | `redis://localhost:6379` |
-| `SHOPIFY_API_KEY` | Shopify Partner App API Key | Optional |
-| `SHOPIFY_API_SECRET`| Shopify Partner App Secret | Optional |
+| `GOOGLE_API_KEY` | Gemini API Key | Required |
+| `LLM_PROVIDER` | `gemini`, `groq`, or `openrouter` | `gemini` |
+| `POSTGRES_URL` | Postgres URL | `postgresql+asyncpg://user:password@postgres:5432/ecomm_agent` |
+| `QDRANT_URL` | Qdrant URL | `http://qdrant:6333` |
+| `REDIS_URL` | Redis URL | `redis://redis:6379` |
 
 ---
 

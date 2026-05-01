@@ -8,7 +8,7 @@ This project supports switching between **Google Gemini** and **OpenRouter** (wh
 
 ## Configuration
 
-All configuration is done via your `.env` file in the `backend/` directory.
+All configuration is done via your `.env` file in the **root** directory.
 
 ### 1. Using Gemini (Default)
 To use Gemini 2.0 Flash directly:

@@ -31,6 +31,9 @@ Open a terminal in the root directory (where `docker-compose.yml` is located) an
 docker compose up --build
 ```
 
+> [!TIP]
+> **Optimized for Mac:** The build is configured to use the **CPU-only** version of AI libraries. This avoids downloading GBs of unnecessary NVIDIA data, saving time and disk space on your MacBook.
+
 **What this command does:**
 - `--build`: Forces Docker to build your Frontend and Backend containers from scratch based on their `Dockerfile`s. It also pre-downloads the embedded AI models into the backend image.
 - `up`: Starts all 5 services:

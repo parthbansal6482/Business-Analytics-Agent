@@ -43,7 +43,7 @@ All nodes in the graph share a persistent state that includes:
 
 ### 1. Vector Memory (RAG)
 -   **Store**: Qdrant (Vector Database).
--   **Embeddings**: Local `sentence-transformers` for processing text chunks.
+-   **Embeddings**: Local `sentence-transformers` for processing text chunks. The Docker build is optimized for **CPU-only** execution, making it lightweight for Apple Silicon (Mac) and standard servers.
 -   **Usage**: Stores product catalogs, customer reviews, and competitor data to provide context for LLM generation, reducing hallucinations.
 
 ### 2. Relational Storage

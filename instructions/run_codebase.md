@@ -1,90 +1,45 @@
 # System Setup and Execution Guide
 
-This guide covers the steps to get the full "Business Analytics" application running on your local machine.
+This guide covers the steps to get the full "Business Analytics" application running.
 
-## Prerequisites
-- **Python**: 3.11+
-- **Node.js**: 18+ (with `npm`)
-- **Docker**: For running PostgreSQL, Redis, and Qdrant.
+## 🐳 Recommended Method: Docker (Easiest)
 
----
+The entire application is containerized for a one-command setup. This is the **strongly recommended** method as it avoids manual installation of databases and dependencies on your machine.
 
-## 1. Backend Setup
+**Steps:**
+1. Configure your API keys in the root `.env` file.
+2. Run `docker compose up --build`.
 
-Detailed configuration for the backend service.
-
-### Step 1: Install Dependencies
-Navigate to the backend directory and install Python packages:
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-### Step 2: Configure Environment
-Create a `.env` file in the `backend/` directory (you can copy `.env.example` if it exists):
-```env
-# Database
-DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/analytics
-
-# LLM Selection
-LLM_PROVIDER=gemini  # or 'openrouter'
-GOOGLE_API_KEY=your_key
-OPENROUTER_API_KEY=your_key
-
-# Vector DB
-QDRANT_HOST=localhost
-QDRANT_PORT=6333
-```
-
-### Step 3: Start External Services (Docker)
-Ensure your Docker Desktop is running, then start the database and cache:
-```bash
-cd backend
-docker compose up -d
-```
-
-### Step 4: Run the Backend
-```bash
-cd backend
-source venv/bin/activate
-uvicorn main:app --reload --port 8000
-```
+For detailed instructions, see: **[instructions/run_docker.md](file:///Users/parthbansal/Projects/Business%20Analytics/instructions/run_docker.md)**
 
 ---
 
-## 2. Frontend Setup
+## 💻 Alternative Method: Manual Setup
 
-The frontend is a React + Vite application.
+Use this method **only** if you want to develop without Docker.
 
-### Step 1: Install Dependencies
+### 1. External Services
+You still need the databases running. You can start just the infrastructure using Docker:
 ```bash
-cd frontend
-npm install
+docker compose up postgres redis qdrant -d
 ```
 
-### Step 2: Run the Frontend
-```bash
-cd frontend
-npm run dev
-```
-The app should now be accessible at `http://localhost:5173`.
+### 2. Backend Setup
+1. Navigate to `backend/`.
+2. Create a virtual environment: `python -m venv venv`.
+3. Activate it: `source venv/bin/activate`.
+4. Install dependencies: `pip install -r requirements.txt`.
+5. Create `backend/.env` (Note: Point URLs to `localhost` instead of Docker service names).
+6. Run: `uvicorn main:app --reload`.
+
+### 3. Frontend Setup
+1. Navigate to `frontend/`.
+2. Install dependencies: `npm install`.
+3. Run: `npm run dev`.
 
 ---
 
-## 3. Switching LLMs (Optional)
-If you want to switch from Gemini to OpenRouter (to save costs or use Open Source models):
-1. Open `backend/.env`.
-2. Change `LLM_PROVIDER=openrouter`.
-3. Add your `OPENROUTER_API_KEY`.
-4. Restart the backend process.
-
-For more details, see `instructions/llm_switching.md`.
-
----
-
-## 4. Troubleshooting
-- **CORS Errors**: Ensure the frontend is on port 5173.
-- **DB Connection**: Check that `docker-compose` started successfully.
-- **Missing Module**: If you see `ModuleNotFoundError`, ensure the virtual environment is activated and `pip install` was run.
+## 🛠️ Troubleshooting
+- **Build Fails**: Run `docker builder prune -f` to clear the cache.
+- **Stat .env Not Found**: Ensure you have a `.env` file in the root directory.
+- **Port Conflict**: Ensure no other service is using ports 5433, 6379, 6333, 8000, or 5173.
