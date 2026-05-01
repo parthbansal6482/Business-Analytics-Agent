@@ -172,7 +172,7 @@ def data_retriever(state: AgentState) -> AgentState:
             question = (
                 "I don't have any data for your account yet. "
                 "Please upload your product catalog, reviews, pricing, "
-                "or competitor data first, or connect your Shopify store."
+                "or competitor data first."
             )
             publish_step(session_id, "clarify", "clarification", question)
             return {

@@ -8,7 +8,7 @@ const KPI_OPTIONS = [
 ]
 
 const MARKETPLACE_OPTIONS = [
-    "Amazon US", "Etsy", "Google Shopping", "TikTok Shop", "eBay", "Shopify", "Walmart",
+    "Amazon US", "Etsy", "Google Shopping", "TikTok Shop", "eBay", "Walmart",
 ]
 
 const ANALYSIS_STYLE_OPTIONS: Array<{ value: "margin-focused" | "growth-focused" | "gmv-focused"; label: string; desc: string }> = [

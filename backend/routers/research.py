@@ -144,7 +144,7 @@ async def start_research(
             "clarification_question": (
                 "I don't have any data for your account yet. "
                 "Please upload your product catalog, reviews, pricing, "
-                "or competitor data first, or connect your Shopify store."
+                "or competitor data first."
             ),
         }
 

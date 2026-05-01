@@ -15,7 +15,7 @@ const SOURCE_ICONS = {
 }
 
 export default function DataSourceStatus() {
-    const { uploadStatus, filenames, shopifyConnected } = useUserStore()
+    const { uploadStatus, filenames } = useUserStore()
     const readyCount = Object.values(uploadStatus).filter(Boolean).length
     const totalCount = 4 // 4 manual uploads
 
@@ -43,22 +43,6 @@ export default function DataSourceStatus() {
                     </div>
                 </div>
 
-                {/* Shopify Section */}
-                <div className="pt-4 border-t border-[#FAFAF7]">
-                    <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-sm font-semibold text-[#181611]">Shopify Integration</h4>
-                        <span className={`font-mono text-sm font-bold ${shopifyConnected ? "text-[#15803d]" : "text-[#8a7e60]"}`}>
-                            {shopifyConnected ? "Connected" : "Not Linked"}
-                        </span>
-                    </div>
-                    <div className="flex flex-wrap gap-3">
-                        <SourceDot
-                            label="Shopify Store"
-                            icon="storefront"
-                            ready={shopifyConnected}
-                        />
-                    </div>
-                </div>
             </div>
         </div>
     )

@@ -25,8 +25,8 @@ export default function Connect() {
                         Set Up Your Intelligence Workspace
                     </h1>
                     <p className="text-[#8a7e60] text-lg max-w-2xl font-light">
-                        Connect your Shopify store or upload manual data to power your AI research agent.
-                        Note: Shopify and manual uploads are mutually exclusive to ensure data consistency.
+                        Upload manual data to power your AI research agent.
+                        The more data you provide, the smarter the insights.
                     </p>
                 </section>
 
@@ -37,18 +37,6 @@ export default function Connect() {
                         <span className="text-sm text-[#8a7e60]">Step 1 of 2</span>
                     </div>
 
-                    {/* Store Integration Subsection */}
-                    <div className="flex flex-col gap-4">
-                        <h3 className="text-xl font-serif font-semibold text-[#181611]">Store Integration</h3>
-                        <ShopifyConnectCard />
-                    </div>
-
-                    {/* Divider */}
-                    <div className="relative flex items-center py-2">
-                        <div className="flex-1 border-t border-[#e5e2db]" />
-                        <span className="px-4 text-xs uppercase tracking-widest text-[#8a7e60] bg-[#FAFAF7]">or manual upload</span>
-                        <div className="flex-1 border-t border-[#e5e2db]" />
-                    </div>
 
                     {/* Manual Data Sources Subsection */}
                     <div className="flex flex-col gap-4">
