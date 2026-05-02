@@ -23,6 +23,7 @@ export default function Dashboard() {
     const { userId, syncUploadStatus } = useUserStore()
 
     useEffect(() => {
+        console.log("System Build Date:", __BUILD_DATE__)
         syncUploadStatus()
     }, [syncUploadStatus])
 
@@ -49,7 +50,7 @@ export default function Dashboard() {
     }
 
     return (
-        <div className="flex-1 w-full px-6 py-10">
+        <div className="flex-1 w-full px-6 pt-10 pb-32">
             {/* Header / Back action */}
             <div className="max-w-4xl mx-auto flex items-center justify-between mb-8">
                 <button
@@ -134,6 +135,23 @@ export default function Dashboard() {
                     </p>
                 </div>
             )}
+
+            {/* System Footer Info */}
+            <div className="max-w-4xl mx-auto mt-12 pt-6 border-t border-[#e5e2db] flex items-center justify-between text-[10px] text-[#8a7e60] uppercase tracking-widest font-medium">
+                <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                    <span>System Status: Online</span>
+                </div>
+                <div>
+                    Last Rebuild: {new Date(__BUILD_DATE__).toLocaleString('en-US', {
+                        day: '2-digit',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                    })}
+                </div>
+            </div>
         </div>
     )
 }
