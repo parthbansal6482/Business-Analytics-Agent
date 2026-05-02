@@ -89,6 +89,7 @@ export type AgentStep =
     | "pricing"
     | "competitor"
     | "synthesize"
+    | "analyze"
     | "report"
     | "__done__"
 

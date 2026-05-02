@@ -10,70 +10,95 @@ logger = logging.getLogger(__name__)
 
 _llm = None
 
+def get_api_key(env_var: str) -> str:
+    """Helper to pick a random key from a comma-separated string."""
+    keys = [k.strip() for k in os.getenv(env_var, "").split(",") if k.strip()]
+    if not keys:
+        return ""
+    return random.choice(keys)
+
 def get_llm():
-    """Lazy initialization of the LLM to ensure environment variables are loaded."""
+    """Returns a configured LLM instance. If multiple keys are provided, picks one randomly."""
     global _llm
-    if _llm is None:
-        provider = os.getenv("LLM_PROVIDER", "gemini").lower()
+    
+    # Check provider first
+    provider = os.getenv("LLM_PROVIDER", "gemini").lower()
+    
+    # For providers with potential rotation, we might skip the global singleton cache
+    # to allow different keys on different calls.
+    groq_keys = [k.strip() for k in os.getenv("GROQ_API_KEY", "").split(",") if k.strip()]
+    google_keys = [k.strip() for k in os.getenv("GOOGLE_API_KEY", "").split(",") if k.strip()]
+    openrouter_keys = [k.strip() for k in os.getenv("OPENROUTER_API_KEY", "").split(",") if k.strip()]
+    
+    is_rotating = (provider == "groq" and len(groq_keys) > 1) or \
+                  (provider == "gemini" and len(google_keys) > 1) or \
+                  (provider == "openrouter" and len(openrouter_keys) > 1)
 
-        # Ensure environment is loaded
-        from dotenv import load_dotenv
-        import pathlib
-        load_dotenv(dotenv_path=pathlib.Path(__file__).parent.parent / ".env", override=True)
+    if _llm is not None and not is_rotating:
+        return _llm
 
-        temperature = float(os.getenv("LLM_TEMPERATURE", "0.1"))
-        max_tokens  = int(os.getenv("LLM_MAX_TOKENS", "4096"))
+    # Ensure environment is loaded
+    from dotenv import load_dotenv
+    import pathlib
+    load_dotenv(dotenv_path=pathlib.Path(__file__).parent.parent / ".env", override=True)
 
-        if provider == "openrouter":
-            api_key = os.getenv("OPENROUTER_API_KEY", "")
-            if not api_key:
-                logger.error("❌ OPENROUTER_API_KEY is missing!")
-                raise RuntimeError("OPENROUTER_API_KEY not found in environment")
+    temperature = float(os.getenv("LLM_TEMPERATURE", "0.1"))
+    max_tokens  = int(os.getenv("LLM_MAX_TOKENS", "4096"))
 
-            model_name = os.getenv("OPENROUTER_MODEL", "google/gemini-2.0-flash-001")
-            logger.info(f"✅ Initializing OpenRouter LLM (model: {model_name})")
-            _llm = ChatOpenAI(
-                model=model_name,
-                openai_api_key=api_key,
-                openai_api_base="https://openrouter.ai/api/v1",
-                temperature=temperature,
-                max_tokens=max_tokens,
-                default_headers={
-                    "HTTP-Referer": "http://localhost:3000",
-                    "X-Title": "Business Analytics Agent",
-                }
-            )
-        elif provider == "groq":
-            api_key = os.getenv("GROQ_API_KEY", "")
-            if not api_key:
-                logger.error("❌ GROQ_API_KEY is missing!")
-                raise RuntimeError("GROQ_API_KEY not found in environment")
+    if provider == "openrouter":
+        api_key = get_api_key("OPENROUTER_API_KEY")
+        if not api_key:
+            logger.error("❌ OPENROUTER_API_KEY is missing!")
+            raise RuntimeError("OPENROUTER_API_KEY not found in environment")
 
-            model_name = os.getenv("LLM_MODEL") or os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
-            logger.info(f"✅ Initializing Groq LLM (model: {model_name})")
-            _llm = ChatGroq(
-                model=model_name,
-                groq_api_key=api_key,
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
-        else:
-            # Default to Gemini
-            api_key = os.getenv("GOOGLE_API_KEY", "")
-            if not api_key:
-                logger.error("❌ GOOGLE_API_KEY is missing!")
-                raise RuntimeError("GOOGLE_API_KEY not found in environment")
+        model_name = os.getenv("OPENROUTER_MODEL", "google/gemini-2.0-flash-001")
+        logger.info(f"✅ Initializing OpenRouter LLM (model: {model_name})")
+        instance = ChatOpenAI(
+            model=model_name,
+            openai_api_key=api_key,
+            openai_api_base="https://openrouter.ai/api/v1",
+            temperature=temperature,
+            max_tokens=max_tokens,
+            default_headers={
+                "HTTP-Referer": "http://localhost:3000",
+                "X-Title": "Business Analytics Agent",
+            }
+        )
+    elif provider == "groq":
+        api_key = get_api_key("GROQ_API_KEY")
+        if not api_key:
+            logger.error("❌ GROQ_API_KEY is missing!")
+            raise RuntimeError("GROQ_API_KEY not found in environment")
 
-            model_name = os.getenv("LLM_MODEL", "gemini-2.0-flash")
-            logger.info(f"✅ Initializing Gemini LLM (key starts with {api_key[:6]}...)")
-            _llm = ChatGoogleGenerativeAI(
-                model=model_name,
-                google_api_key=api_key,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                max_retries=0,
-            )
-    return _llm
+        model_name = os.getenv("LLM_MODEL") or os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+        logger.info(f"✅ Initializing Groq LLM (model: {model_name}, key starts with {api_key[:6]}...)")
+        instance = ChatGroq(
+            model=model_name,
+            groq_api_key=api_key,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+    else:
+        # Default to Gemini
+        api_key = get_api_key("GOOGLE_API_KEY")
+        if not api_key:
+            logger.error("❌ GOOGLE_API_KEY is missing!")
+            raise RuntimeError("GOOGLE_API_KEY not found in environment")
+
+        model_name = os.getenv("LLM_MODEL", "gemini-2.0-flash")
+        logger.info(f"✅ Initializing Gemini LLM (key starts with {api_key[:6]}...)")
+        instance = ChatGoogleGenerativeAI(
+            model=model_name,
+            google_api_key=api_key,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            max_retries=0,
+        )
+    
+    # Only cache if not rotating
+    if not is_rotating:
+        _llm = instance
+    return instance
 
 
 def call_llm_with_retry(prompt: str, retries: int = 6) -> str:

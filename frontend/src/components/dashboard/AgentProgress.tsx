@@ -10,18 +10,23 @@ const STEP_LABELS: Record<AgentStep, string> = {
     sentiment: "Analyzing reviews",
     pricing: "Analyzing pricing",
     competitor: "Analyzing competitors",
-    synthesize: "Synthesizing insights",
+    analyze: "Analyzing global statistics",
+    synthesize: "Synthesizing deep insights",
     report: "Generating report",
     __done__: "Done",
 }
 
-const STEP_ORDER: AgentStep[] = [
-    "intent", "clarify", "memory", "retrieve",
-    "sentiment", "pricing", "competitor", "synthesize", "report",
+const DEEP_STEPS: AgentStep[] = [
+    "intent", "retrieve", "analyze", "synthesize", "report"
+]
+
+const QUICK_STEPS: AgentStep[] = [
+    "intent", "retrieve", "analyze", "report"
 ]
 
 export default function AgentProgress() {
-    const { progress, progressLabels, query } = useSessionStore()
+    const { progress, progressLabels, query, mode } = useSessionStore()
+    const steps = mode === "deep" ? DEEP_STEPS : QUICK_STEPS
 
     return (
         <div className="bg-white border border-[#e5e2db] rounded-xl p-8 animate-fade-in">
@@ -39,7 +44,7 @@ export default function AgentProgress() {
 
             {/* Steps */}
             <div className="space-y-4">
-                {STEP_ORDER.map((step) => {
+                {steps.map((step) => {
                     const status = progress[step]
                     return (
                         <div key={step} className="flex items-center gap-4">

@@ -82,6 +82,7 @@ Database Record Counts (use ONLY when query explicitly asks for totals):
 Query: "{state['query']}"
 {db_note}
 Data Context (use THIS to answer product/sales/complaint questions):
+GLOBAL STATS (Entire library totals/averages): {json.dumps(state.get("global_stats", {}))}
 Product Catalog (includes sales_volume per product): {catalog_text}
 Pricing: {pricing_text}
 Reviews: {review_text}
@@ -135,6 +136,7 @@ Query: "{state['query']}"
 User preferences: {state.get('user_preferences', {})}
 {db_note}
 Data Context (use THIS to answer product/sales/pricing/review questions):
+GLOBAL STATS (Full dataset averages/totals): {json.dumps(state.get("global_stats", {}))}
 Product Catalog (includes sales_volume per product — higher = better seller):
 {catalog_text}
 

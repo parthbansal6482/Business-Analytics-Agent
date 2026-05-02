@@ -34,20 +34,26 @@ def combined_analyzer(state: AgentState) -> AgentState:
         competitor_text = _trim(state.get("competitor_chunks", []), n=10)
         catalog_text    = _trim(state.get("catalog_chunks", []),   n=5)
 
+        global_stats = state.get("global_stats", {})
+        stats_text = json.dumps(global_stats, indent=2)
+
         prompt = f"""You are an expert e-commerce analyst. Analyze the data below and return a single JSON object.
 
 QUERY: "{state['query']}"
 
-REVIEW SAMPLES:
+GLOBAL DATA STATISTICS (Across ALL your data):
+{stats_text}
+
+REVIEW SAMPLES (Specific matches):
 {review_text or "(no reviews available)"}
 
-PRICING DATA:
+PRICING DATA (Specific matches):
 {pricing_text or "(no pricing data available)"}
 
-COMPETITOR DATA:
+COMPETITOR DATA (Specific matches):
 {competitor_text or "(no competitor data available)"}
 
-CATALOG SAMPLE:
+CATALOG SAMPLE (Specific matches):
 {catalog_text or "(no catalog available)"}
 
 Return ONLY valid JSON with this exact structure (no markdown fences):

@@ -52,6 +52,7 @@ def _build_data_block(state: AgentState, top_k: int) -> str:
     parts.append(f"SENTIMENT ANALYSIS RESULTS:\n{state.get('sentiment_results', {})}")
     parts.append(f"PRICING ANALYSIS RESULTS:\n{state.get('pricing_results', {})}")
     parts.append(f"COMPETITOR ANALYSIS RESULTS:\n{state.get('competitor_results', {})}")
+    parts.append(f"GLOBAL DATA AGGREGATES (Full dataset totals/averages):\n{state.get('global_stats', {})}")
     return "\n\n".join(parts)
 
 

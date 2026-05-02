@@ -23,10 +23,11 @@ class AgentState(TypedDict):
     order_chunks: list[str]
     customer_chunks: list[str]
 
-    # Database metric counts
+    # Database metric counts & Aggregates
     total_products_synced: int
     total_orders_synced: int
     total_customers_synced: int
+    global_stats: dict  # {catalog: {...}, reviews: {...}, pricing: {...}, orders: {...}}
 
     # Analysis outputs
     sentiment_results: dict

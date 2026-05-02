@@ -109,9 +109,8 @@ def data_retriever(state: AgentState) -> AgentState:
         query      = state["query"]
         user_id    = state["user_id"]
         session_id = state["session_id"]
-        mode       = state.get("mode", "quick")
-
-        top_k = DEEP_TOP_K if mode == "deep" else QUICK_TOP_K
+        # Use the same high limit for both modes to ensure consistency
+        top_k = DEEP_TOP_K
 
         # Embed once, reuse across all searches
         query_vec = embed_one(query)

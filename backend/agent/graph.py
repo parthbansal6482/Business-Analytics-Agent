@@ -12,6 +12,7 @@ from agent.nodes.intent_classifier import intent_classifier
 from agent.nodes.clarification_check import clarification_check
 from agent.nodes.memory_loader import memory_loader
 from agent.nodes.data_retriever import data_retriever
+from agent.nodes.global_stats_aggregator import global_stats_aggregator
 from agent.nodes.combined_analyzer import combined_analyzer
 from agent.nodes.business_synthesizer import business_synthesizer
 from agent.nodes.report_generator import report_generator
@@ -55,6 +56,7 @@ def build_graph():
     graph.add_node("clarification_check", clarification_check)
     graph.add_node("memory_loader",       memory_loader)
     graph.add_node("data_retriever",      data_retriever)
+    graph.add_node("global_stats_aggregator", global_stats_aggregator)
     graph.add_node("combined_analyzer",   combined_analyzer)   # replaces 3 separate nodes
     graph.add_node("business_synthesizer", business_synthesizer)
     graph.add_node("report_generator",    report_generator)
@@ -83,8 +85,14 @@ def build_graph():
         "fallback": "fallback",
     })
 
-    # retriever → quick: report | deep: combined_analyzer
-    graph.add_conditional_edges("data_retriever", route_after_retrieval, {
+    # retriever → global_stats_aggregator
+    graph.add_conditional_edges("data_retriever", route_after_node("global_stats_aggregator"), {
+        "global_stats_aggregator": "global_stats_aggregator",
+        "fallback": "fallback",
+    })
+
+    # global_stats → quick: report | deep: combined_analyzer
+    graph.add_conditional_edges("global_stats_aggregator", route_after_retrieval, {
         "combined_analyzer": "combined_analyzer",
         "report_generator": "report_generator",
         "fallback": "fallback",

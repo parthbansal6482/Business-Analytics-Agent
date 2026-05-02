@@ -1,7 +1,6 @@
 """
-Full data ingestion pipeline: parse → validate → chunk → embed → upsert.
-Re-uploading a file REPLACES the previous data for that user+collection
-(delete-before-upsert ensures no stale data accumulates in Qdrant).
+Full data ingestion pipeline: parse → map columns → validate → chunk → embed → upsert.
+Re-uploading a file REPLACES the previous data for that user+collection.
 """
 
 import io
@@ -10,14 +9,15 @@ import logging
 import pandas as pd
 from data.chunker import chunk_dataframe
 from data.embedder import embed
+from data.schema_mapper import map_columns_with_llm
 from memory.qdrant_store import upsert_chunks, delete_by_user
 
 logger = logging.getLogger(__name__)
 
-# Set to False to skip the delete step (useful for debugging / append mode)
+# Set to False to skip the delete step
 DELETE_BEFORE_UPLOAD = os.getenv("DELETE_BEFORE_UPLOAD", "true").lower() == "true"
 
-# Expected columns per data type (required)
+# Canonical internal column names
 REQUIRED_COLUMNS = {
     "catalog":     {"name", "price"},
     "reviews":     {"review_text", "rating"},
@@ -27,7 +27,6 @@ REQUIRED_COLUMNS = {
     "customers":   {"customer_id", "email"},
 }
 
-# Optional columns per type
 OPTIONAL_COLUMNS = {
     "catalog":     {"category", "sku", "rating", "inventory", "sales_volume"},
     "reviews":     {"sku", "date", "verified_purchase"},
@@ -37,18 +36,31 @@ OPTIONAL_COLUMNS = {
     "customers":   {"total_spent", "orders_count", "state"},
 }
 
-
 def validate_schema(df: pd.DataFrame, data_type: str) -> None:
-    """Check that required columns are present (case-insensitive)."""
+    """Check that required columns are present. Uses LLM to map if they are missing."""
+    # 1. Normalize current columns for initial check
     df.columns = [c.lower().strip().replace(" ", "_") for c in df.columns]
+    
     required = REQUIRED_COLUMNS.get(data_type, set())
-    missing = required - set(df.columns)
+    current_cols = set(df.columns)
+    
+    # 2. If required columns are missing, try AI-based mapping
+    if not (required <= current_cols):
+        logger.info(f"Required columns {required} missing in {current_cols}. Attempting AI mapping...")
+        mapping = map_columns_with_llm(list(df.columns), data_type)
+        if mapping:
+            df.rename(columns=mapping, inplace=True)
+            # Re-normalize after renaming
+            df.columns = [c.lower().strip().replace(" ", "_") for c in df.columns]
+            current_cols = set(df.columns)
+
+    # 3. Final validation
+    missing = required - current_cols
     if missing:
         raise ValueError(
-            f"Data type '{data_type}' is missing required columns: {missing}. "
-            f"Found: {list(df.columns)}"
+            f"Missing required columns: {missing}. Found: {list(df.columns)}. "
+            f"Tip: Ensure your file has headers like {list(required)}."
         )
-
 
 def ingest_file(
     file_bytes: bytes,
@@ -57,10 +69,7 @@ def ingest_file(
     user_id: str,
 ) -> dict:
     """
-    Full pipeline: parse → validate → clean → chunk → embed → upsert.
-    Old data for this user+collection is deleted before upserting to prevent
-    stale data from lingering in Qdrant.
-    Returns {"rows_loaded": N, "data_type": data_type}
+    Full pipeline: parse → AI map → validate → clean → chunk → embed → upsert.
     """
     # 1. Parse
     fname = filename.lower()
@@ -73,31 +82,26 @@ def ingest_file(
     else:
         raise ValueError(f"Unsupported file format: {filename}")
 
-    # 2. Normalize column names
-    df.columns = [c.lower().strip().replace(" ", "_") for c in df.columns]
-
-    # 3. Validate
+    # 2. Map & Validate
     validate_schema(df, data_type)
 
-    # 4. Clean
+    # 3. Clean
     df = df.dropna(how="all").fillna("")
-    df = df.head(2000)  # safety cap: no OOM on huge files
+    df = df.head(2000)  # safety cap
 
-    # 5. Chunk
+    # 4. Chunk
     chunks = chunk_dataframe(df, data_type)
 
-    # 6. Embed
+    # 5. Embed
     texts = [c["text"] for c in chunks]
     vectors = embed(texts)
 
-    # 7. Delete old data for this user+collection BEFORE upserting
+    # 6. Delete old data
     collection = f"ecomm_{data_type}"
     if DELETE_BEFORE_UPLOAD:
-        logger.info(f"Deleting existing data for user={user_id} in {collection} before re-upload")
+        logger.info(f"Deleting existing data for user={user_id} in {collection}")
         delete_by_user(collection, user_id)
 
-    # 8. Upsert fresh data
+    # 7. Upsert
     count = upsert_chunks(collection, chunks, vectors, user_id)
-    logger.info(f"Upserted {count} chunks to {collection} for user {user_id}")
-
     return {"rows_loaded": len(df), "data_type": data_type}

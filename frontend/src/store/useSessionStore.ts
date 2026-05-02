@@ -36,6 +36,7 @@ const defaultProgress: Record<AgentStep, StepStatus> = {
     pricing: "pending",
     competitor: "pending",
     synthesize: "pending",
+    analyze: "pending",
     report: "pending",
     __done__: "pending",
 }
@@ -49,6 +50,7 @@ const defaultProgressLabels: Record<AgentStep, string> = {
     pricing: "",
     competitor: "",
     synthesize: "",
+    analyze: "",
     report: "",
     __done__: "",
 }
