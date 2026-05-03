@@ -10,6 +10,11 @@ export default defineConfig({
   ],
   server: {
     host: true,
+    hmr: {
+      host: "agent.zerocores.in",
+      protocol: "wss",
+      clientPort: 443
+    },
     allowedHosts: [
       "agent.zerocores.in",
       "zerocores.in",
