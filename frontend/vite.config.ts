@@ -10,6 +10,11 @@ export default defineConfig({
   ],
   server: {
     host: true,
+    allowedHosts: [
+      "agent.zerocores.in",
+      "zerocores.in",
+      ".zerocores.in"
+    ]
   },
   define: {
     __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
