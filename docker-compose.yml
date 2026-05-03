@@ -9,17 +9,40 @@
 
 services:
 
+  # ── Reverse Proxy ─────────────────────────────────────
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - webroot:/var/www/certbot
+    env_file:
+      - .env
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME:-localhost}
+    depends_on:
+      - frontend
+      - backend
+
   # ── Infrastructure ────────────────────────────────────
 
   postgres:
     image: postgres:16-alpine
-    restart: unless-stopped
+    restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
       POSTGRES_DB: ${POSTGRES_DB:-ecomm_agent}
-    ports:
-      - "5433:5432"
+    # Only expose to the internal network for security
+    # ports:
+    #   - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -30,9 +53,9 @@ services:
 
   redis:
     image: redis:7-alpine
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
+    restart: always
+    # ports:
+    #   - "6379:6379"
     volumes:
       - redisdata:/data
     healthcheck:
@@ -43,56 +66,61 @@ services:
 
   qdrant:
     image: qdrant/qdrant:latest
-    restart: unless-stopped
-    ports:
-      - "6333:6333"
-      - "6334:6334"
+    restart: always
+    # ports:
+    #   - "6333:6333"
+    #   - "6334:6334"
     volumes:
       - qdrantdata:/qdrant/storage
- #   healthcheck:
- #     test: [ "CMD-SHELL", "wget -q -O - http://localhost:6333/healthz > /dev/null 2>&1 || curl -sf http://localhost:6333/healthz || exit 1" ]
- #     interval: 10s
- #     timeout: 5s
- #     retries: 10
- #     start_period: 10s
-  # healthcheck removed
+
   # ── Application ───────────────────────────────────────
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    restart: unless-stopped
-    ports:
-      - "8000:8000"
+    restart: always
+    # Expose internally; handled by nginx
+    # ports:
+    #   - "8000:8000"
     env_file:
       - .env
     environment:
-      # Override URLs to use Docker service names instead of localhost
       QDRANT_URL: http://qdrant:6333
       REDIS_URL: redis://redis:6379
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-#      qdrant:
-#        condition: service_healthy
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    restart: unless-stopped
-    ports:
-      - "5173:5173"
+    restart: always
+    # Internal port only
+    expose:
+      - "80"
     environment:
-      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+      VITE_API_URL: ${VITE_API_URL:-/api}
     depends_on:
       - backend
+
+  certbot:
+    image: certbot/certbot
+    restart: always
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - webroot:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
 volumes:
   pgdata:
   redisdata:
   qdrantdata:
+  certbot-etc:
+  certbot-var:
+  webroot:

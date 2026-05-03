@@ -1,4 +1,5 @@
-FROM node:20-slim
+# Stage 1: Build the React application
+FROM node:20-slim AS build
 
 WORKDIR /app
 
@@ -6,9 +7,19 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm install
 
-# Copy application code
+# Copy application code and build
 COPY . .
+RUN npm run build
 
-EXPOSE 5173
+# Stage 2: Serve the application using Nginx
+FROM nginx:alpine
 
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+# Copy the built assets from the build stage
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Copy custom nginx configuration if needed (optional)
+# COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

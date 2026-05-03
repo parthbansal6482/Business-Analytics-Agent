@@ -10,6 +10,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Python dependencies
 COPY requirements.txt .
+
+# Install CPU-only Torch first to save space and avoid CUDA dependencies
+RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+# Install the rest of the requirements
 RUN pip install --no-cache-dir -r requirements.txt psycopg2-binary
 
 # Pre-download the sentence-transformers model into the image
