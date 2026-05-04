@@ -109,6 +109,7 @@ def data_retriever(state: AgentState) -> AgentState:
         query      = state["query"]
         user_id    = state["user_id"]
         session_id = state["session_id"]
+        mode       = state.get("mode", "quick")
         # Use the same high limit for both modes to ensure consistency
         top_k = DEEP_TOP_K
 
