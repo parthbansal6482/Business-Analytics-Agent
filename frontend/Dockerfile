@@ -9,7 +9,7 @@ RUN npm install
 
 # Copy application code and build
 COPY . .
-RUN npm run build
+RUN NODE_OPTIONS="--max-old-space-size=2048" npm run build
 
 # Stage 2: Serve the application using Nginx
 FROM nginx:alpine
