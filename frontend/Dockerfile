@@ -9,7 +9,7 @@ RUN npm install
 
 # Copy application code and build
 COPY . .
-RUN NODE_OPTIONS="--max-old-space-size=2048" npm run build
+RUN VITE_API_URL=/api NODE_OPTIONS="--max-old-space-size=2048" npm run build
 
 # Stage 2: Serve the application using Nginx
 FROM nginx:alpine
